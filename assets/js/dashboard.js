@@ -10,7 +10,7 @@
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
 
-  const state = { business: null, user: null, meta: {}, categories: [], products: [], orders: [], library: [], route: "home" };
+  const state = { business: null, user: null, meta: {}, categories: [], products: [], orders: [], library: [], route: "home", isAdmin: false, adminRows: [] };
   let ready = false;
 
   /* Estado del asistente de configuración */
@@ -144,6 +144,9 @@
         case "config-seo": view.innerHTML = viewConfigSeo(); bindConfigSeo(); break;
         case "account": view.innerHTML = viewAccount(); bindAccount(); break;
         case "setup": view.innerHTML = viewSetup(); bindSetup(); break;
+        case "admin":
+          if (!state.isAdmin) { view.innerHTML = `<div class="alert alert-error">${t("adm.notAllowed")}</div>`; break; }
+          view.innerHTML = viewAdmin(); bindAdmin(); break;
         default: view.innerHTML = viewHome(); bindHome();
       }
     } catch (e) { console.error(e); view.innerHTML = `<div class="alert alert-error">${U.escapeHtml(e.message || t("common.error"))}</div>`; }
@@ -1467,6 +1470,132 @@
     });
   }
 
+  /* ==================== VISTA: ADMINISTRACIÓN ==================== */
+  function viewAdmin() {
+    return `
+      <div class="page-head">
+        <span class="badge info">★ ${t("adm.badge")}</span>
+        <h1 class="mt-1">${t("adm.title")}</h1>
+        <p>${t("adm.sub")}</p>
+      </div>
+      <div class="grid cols-4 mb-3" id="adminStats"></div>
+      <div class="card">
+        <div class="row wrap mb-2" style="gap:10px">
+          <input class="input" id="admSearch" style="flex:1;min-width:200px" placeholder="${t("adm.search")}">
+          <button class="btn btn-soft btn-sm" id="admRefresh">${t("adm.refresh")}</button>
+        </div>
+        <div style="overflow-x:auto"><table id="admTable"><tbody><tr><td class="muted">${t("adm.loading")}</td></tr></tbody></table></div>
+      </div>`;
+  }
+
+  function bindAdmin() {
+    const s = $("#admSearch");
+    if (s) s.addEventListener("input", renderAdmin);
+    const r = $("#admRefresh");
+    if (r) r.addEventListener("click", loadAdminRows);
+    loadAdminRows();
+  }
+
+  async function loadAdminRows() {
+    try {
+      state.adminRows = await S.adminOverview();
+      renderAdmin();
+    } catch (e) {
+      const tb = $("#admTable");
+      if (tb) tb.innerHTML = `<tbody><tr><td><div class="alert alert-error">${U.escapeHtml(e.message || t("common.error"))}</div></td></tr></tbody>`;
+    }
+  }
+
+  function renderAdmin() {
+    const rows = state.adminRows || [];
+    const q = (($("#admSearch") || {}).value || "").toLowerCase().trim();
+    const list = q
+      ? rows.filter((b) => [b.name, b.slug, b.owner_email].join(" ").toLowerCase().indexOf(q) >= 0)
+      : rows;
+
+    const sum = (k) => rows.reduce((a, b) => a + ((b.counts && b.counts[k]) || 0), 0);
+    const stats = $("#adminStats");
+    if (stats) {
+      const tile = (v, l) => `<div class="card"><div class="small muted" style="text-transform:uppercase;font-weight:700">${l}</div><h2 style="margin:4px 0 0">${v}</h2></div>`;
+      stats.innerHTML = tile(rows.length, t("adm.totalAccounts")) + tile(sum("products"), t("adm.totalProducts")) +
+        tile(sum("orders"), t("adm.totalOrders")) + tile(sum("library"), t("adm.totalLibrary"));
+    }
+
+    const tb = $("#admTable");
+    if (!tb) return;
+    if (!list.length) { tb.innerHTML = `<tbody><tr><td class="muted">${t("adm.empty")}</td></tr></tbody>`; return; }
+    tb.innerHTML = `
+      <thead><tr>
+        <th>${t("adm.colBusiness")}</th><th>${t("adm.colOwner")}</th><th>${t("adm.colLink")}</th>
+        <th>${t("adm.colData")}</th><th>${t("adm.colCreated")}</th><th>${t("adm.colActions")}</th>
+      </tr></thead>
+      <tbody>
+        ${list.map((b) => `
+          <tr>
+            <td><strong>${U.escapeHtml(b.name)}</strong><div class="small muted">${U.escapeHtml(b.slug)}</div></td>
+            <td class="small">${U.escapeHtml(b.owner_email || "—")}</td>
+            <td><a class="small" href="${U.escapeHtml(U.catalogUrl(b.slug))}" target="_blank" rel="noopener">${t("adm.openCatalog")} ↗</a></td>
+            <td class="small muted">${(b.counts && b.counts.products) || 0} / ${(b.counts && b.counts.categories) || 0} / ${(b.counts && b.counts.orders) || 0}</td>
+            <td class="small muted">${b.created_at ? new Date(b.created_at).toLocaleDateString() : "—"}</td>
+            <td>
+              <div class="row" style="gap:6px">
+                <button class="btn btn-soft btn-sm" data-adm-view="${U.escapeHtml(b.id)}">${t("adm.detail")}</button>
+                <button class="btn btn-danger btn-sm" data-adm-del="${U.escapeHtml(b.id)}">${t("adm.delete")}</button>
+              </div>
+            </td>
+          </tr>`).join("")}
+      </tbody>`;
+
+    $$("[data-adm-view]").forEach((btn) => btn.addEventListener("click", () => openAdminDetail(btn.getAttribute("data-adm-view"))));
+    $$("[data-adm-del]").forEach((btn) => btn.addEventListener("click", () => adminDelete(btn.getAttribute("data-adm-del"))));
+  }
+
+  async function openAdminDetail(id) {
+    openModal(t("adm.detailTitle"), `<p class="muted">${t("adm.loading")}</p>`);
+    try {
+      const d = await S.adminBusinessDetail(id);
+      const b = d.business || {};
+      const rows = (d.products || []).map((p) => `<tr><td>${U.escapeHtml(p.name)}</td><td class="small muted">${U.currency(p.price, b.currency)}</td></tr>`).join("");
+      $("#modalBody").innerHTML = `
+        <h3 style="margin:0 0 4px">${U.escapeHtml(b.name || "—")}</h3>
+        <div class="small muted">${U.escapeHtml(b.owner_email || "")}</div>
+        <div class="row wrap mt-2" style="gap:8px">
+          <span class="badge info">${t("adm.products")}: ${(d.products || []).length}</span>
+          <span class="badge info">${t("adm.categories")}: ${(d.categories || []).length}</span>
+          <span class="badge info">${t("adm.orders")}: ${(d.orders || []).length}</span>
+          <span class="badge info">${t("adm.images")}: ${(d.library || []).length}</span>
+        </div>
+        <div class="mt-3" style="max-height:260px;overflow:auto">
+          ${(d.products || []).length ? `<table><tbody>${rows}</tbody></table>` : `<p class="muted small">${t("adm.noProducts")}</p>`}
+        </div>
+        <div class="row mt-3" style="justify-content:flex-end">
+          <a class="btn btn-soft btn-sm" href="${U.escapeHtml(U.catalogUrl(b.slug || ""))}" target="_blank" rel="noopener">${t("adm.openCatalog")} ↗</a>
+          <button class="btn btn-ghost btn-sm" data-close>${t("common.cancel")}</button>
+        </div>`;
+    } catch (e) {
+      $("#modalBody").innerHTML = `<div class="alert alert-error">${U.escapeHtml(e.message || t("common.error"))}</div>`;
+    }
+  }
+
+  function adminDelete(id) {
+    const b = (state.adminRows || []).find((x) => x.id === id) || {};
+    openModal(t("adm.deleteTitle"), `
+      <p>${t("adm.deleteText")}</p>
+      <p class="small"><strong>${U.escapeHtml(b.name || "")}</strong> · ${U.escapeHtml(b.owner_email || "")}</p>
+      <div class="row" style="justify-content:flex-end">
+        <button class="btn btn-ghost" data-close>${t("common.cancel")}</button>
+        <button class="btn btn-danger" id="admDelGo">${t("adm.delete")}</button>
+      </div>`);
+    $("#admDelGo").addEventListener("click", async () => {
+      try {
+        await S.adminDeleteBusiness(id);
+        closeModal();
+        toast(t("adm.deleteDone"));
+        await loadAdminRows();
+      } catch (e) { toast((e && e.message) || t("common.error"), "error"); }
+    });
+  }
+
   /* ==================== ARRANQUE ==================== */
   async function loadBusiness() {
     state.business = await S.myBusiness();
@@ -1479,6 +1608,12 @@
     if (!state.business) { location.href = "/login.html"; return; }
     state.user = user;
     try { state.meta = (await S.userMeta()) || {}; } catch (e) { state.meta = {}; }
+    try { state.isAdmin = await S.isAdmin(); } catch (e) { state.isAdmin = false; }
+    if (state.isAdmin) {
+      const ag = $("#adminGroup"), al = $("#adminLink");
+      if (ag) ag.classList.remove("hidden");
+      if (al) al.classList.remove("hidden");
+    }
     ready = true;
 
     const email = (user && user.email) || "";

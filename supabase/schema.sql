@@ -251,3 +251,112 @@ create policy "catalog_images_delete" on storage.objects
 -- ============================================================
 --  ¡Listo! Copia la URL y la anon key en assets/js/config.js
 -- ============================================================
+
+
+-- ===========================================================
+-- 9) ADMINISTRACIÓN (super admin)
+-- -----------------------------------------------------------
+-- Un administrador puede ver y gestionar TODAS las cuentas.
+-- La seguridad real está AQUÍ (RLS), nunca en el frontend.
+-- ===========================================================
+
+-- 9.1 Guardar el correo del propietario en cada negocio (para el panel)
+alter table public.businesses add column if not exists owner_email text;
+
+update public.businesses b
+   set owner_email = u.email
+  from auth.users u
+ where u.id = b.owner_id and b.owner_email is null;
+
+-- 9.2 Tabla de administradores
+create table if not exists public.admins (
+  user_id    uuid primary key references auth.users(id) on delete cascade,
+  email      text,
+  created_at timestamptz default now()
+);
+
+alter table public.admins enable row level security;
+
+-- 9.3 Función helper (SECURITY DEFINER: evita recursión en RLS)
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select exists (select 1 from public.admins a where a.user_id = auth.uid());
+$$;
+
+grant execute on function public.is_admin() to authenticated, anon;
+
+-- 9.4 Políticas de la tabla admins
+drop policy if exists "admins_read" on public.admins;
+create policy "admins_read" on public.admins
+  for select to authenticated
+  using (public.is_admin() or user_id = auth.uid());
+
+-- 9.5 Políticas de administrador sobre las tablas de datos
+drop policy if exists "businesses_admin_all" on public.businesses;
+create policy "businesses_admin_all" on public.businesses
+  for all to authenticated
+  using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "categories_admin_all" on public.categories;
+create policy "categories_admin_all" on public.categories
+  for all to authenticated
+  using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "products_admin_all" on public.products;
+create policy "products_admin_all" on public.products
+  for all to authenticated
+  using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "orders_admin_all" on public.orders;
+create policy "orders_admin_all" on public.orders
+  for all to authenticated
+  using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "library_admin_all" on public.library;
+create policy "library_admin_all" on public.library
+  for all to authenticated
+  using (public.is_admin()) with check (public.is_admin());
+
+-- 9.6 Storage: el admin puede gestionar cualquier imagen
+drop policy if exists "storage_admin_all" on storage.objects;
+create policy "storage_admin_all" on storage.objects
+  for all to authenticated
+  using (bucket_id = 'catalog-images' and public.is_admin())
+  with check (bucket_id = 'catalog-images' and public.is_admin());
+
+-- 9.7 Trigger: guardar también el correo del dueño al crear el negocio
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.businesses (owner_id, owner_email, name, slug)
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data->>'business_name', 'Mi negocio'),
+    coalesce(new.raw_user_meta_data->>'slug', 'negocio-' || substr(new.id::text, 1, 6))
+  );
+  return new;
+end;
+$$;
+
+-- ===========================================================
+-- 9.8 HAZTE ADMINISTRADOR  (ejecuta esto UNA sola vez)
+-- -----------------------------------------------------------
+-- Cambia el correo por EL TUYO y ejecuta SOLO estas 3 líneas:
+--
+--   insert into public.admins (user_id, email)
+--   select id, email from auth.users where email = 'tu-correo@ejemplo.com'
+--   on conflict (user_id) do nothing;
+--
+-- Comprueba que quedó bien:
+--   select * from public.admins;
+-- ===========================================================

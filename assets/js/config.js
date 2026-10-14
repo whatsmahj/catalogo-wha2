@@ -14,6 +14,13 @@ window.APP_CONFIG = {
   supabaseUrl: "",      // ej. "https://xxxxxxxx.supabase.co"
   supabaseAnonKey: "",  // ej. "eyJhbGciOi..."
 
+  // --- Administradores (super admin) ---
+  // En Supabase el permiso real vive en la tabla public.admins (ver schema.sql).
+  // Esta lista se usa SOLO en modo demo (sin Supabase). Pon tu correo aquí.
+  adminEmails: [
+    // "tu-correo@ejemplo.com"
+  ],
+
   // --- Marca y contacto ---
   brandName: "Catalogo Wha",
   // Número de WhatsApp de soporte (formato internacional, solo dígitos)

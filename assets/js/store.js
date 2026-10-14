@@ -449,6 +449,81 @@
     });
   }
 
+  /* ---------- ADMINISTRACIÓN (super admin) ---------- */
+  async function isAdmin() {
+    if (isDemo()) {
+      const u = db().user;
+      const list = (window.APP_CONFIG.adminEmails || []).map((e) => String(e).toLowerCase().trim());
+      return !!(u && u.email && list.indexOf(String(u.email).toLowerCase().trim()) >= 0);
+    }
+    init();
+    try {
+      const { data, error } = await sb.rpc("is_admin");
+      if (error) return false;
+      return data === true;
+    } catch (e) { return false; }
+  }
+
+  async function adminOverview() {
+    init();
+    if (isDemo()) {
+      const d = db();
+      const mine = (d.user && d.user.email) || "";
+      return d.businesses.map((b) => ({
+        ...b,
+        owner_email: b.owner_email || mine,
+        counts: {
+          products: d.products.filter((p) => p.business_id === b.id).length,
+          categories: d.categories.filter((c) => c.business_id === b.id).length,
+          orders: d.orders.filter((o) => o.business_id === b.id).length,
+          library: d.library.filter((l) => l.business_id === b.id).length
+        }
+      })).sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
+    }
+    const { data, error } = await sb
+      .from("businesses")
+      .select("*, products(count), categories(count), orders(count), library(count)")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    const one = (v) => (v && v[0] && v[0].count) || 0;
+    return (data || []).map((b) => ({
+      ...b,
+      counts: {
+        products: one(b.products), categories: one(b.categories),
+        orders: one(b.orders), library: one(b.library)
+      }
+    }));
+  }
+
+  async function adminBusinessDetail(id) {
+    init();
+    if (isDemo()) {
+      const d = db();
+      const b = d.businesses.find((x) => x.id === id) || null;
+      const by = (arr) => arr.filter((x) => x.business_id === id);
+      return {
+        business: b ? { ...b, owner_email: b.owner_email || (d.user && d.user.email) || "" } : null,
+        categories: by(d.categories), products: by(d.products), orders: by(d.orders), library: by(d.library)
+      };
+    }
+    const { data: business, error } = await sb.from("businesses").select("*").eq("id", id).maybeSingle();
+    if (error) throw error;
+    const [c, p, o, l] = await Promise.all([
+      sb.from("categories").select("*").eq("business_id", id),
+      sb.from("products").select("*").eq("business_id", id).order("created_at", { ascending: false }),
+      sb.from("orders").select("*").eq("business_id", id).order("created_at", { ascending: false }),
+      sb.from("library").select("*").eq("business_id", id)
+    ]);
+    return {
+      business,
+      categories: c.data || [], products: p.data || [], orders: o.data || [], library: l.data || []
+    };
+  }
+
+  async function adminDeleteBusiness(id) {
+    return deleteBusinessData(id);
+  }
+
   window.CW.store = {
     init, isDemo, uid, slugify,
     signUp, signIn, signOut, currentUser,
@@ -458,6 +533,7 @@
     listCategories, saveCategory, deleteCategory,
     listProducts, saveProduct, deleteProduct,
     listOrders, createOrder, updateOrderStatus,
-    listLibrary, uploadImage, deleteImage, fileToDataUrl
+    listLibrary, uploadImage, deleteImage, fileToDataUrl,
+    isAdmin, adminOverview, adminBusinessDetail, adminDeleteBusiness
   };
 })();

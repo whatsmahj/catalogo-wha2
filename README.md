@@ -164,3 +164,47 @@ automáticamente).
 - Nunca subas tu `service_role key` al repositorio.
 - Los pedidos pueden crearse sin sesión (para clientes) pero solo el dueño del
   negocio puede leerlos o gestionarlos.
+
+---
+
+## ⭐ Ser administrador de todas las cuentas
+
+El panel de administración permite ver y gestionar **todas** las cuentas:
+listado con propietario, enlace, número de productos / categorías / pedidos /
+imágenes, buscador, detalle de cada cuenta y eliminación.
+
+### Con Supabase (recomendado)
+
+1. Ejecuta de nuevo `supabase/schema.sql` (la sección **9) ADMINISTRACIÓN**).
+   Crea la tabla `public.admins`, la función `public.is_admin()` y las políticas
+   RLS que dan acceso global **solo** a los administradores.
+2. Regístrate primero en la web con **tu** correo (así existes en `auth.users`).
+3. En el **SQL Editor** de Supabase ejecuta, cambiando el correo por el tuyo:
+
+   ```sql
+   insert into public.admins (user_id, email)
+   select id, email from auth.users where email = 'tu-correo@ejemplo.com'
+   on conflict (user_id) do nothing;
+   ```
+
+4. Recarga el panel: aparecerá la sección **★ Administración** en el menú.
+
+Para añadir o quitar administradores, inserta o borra filas de `public.admins`.
+
+### En modo demo (sin Supabase)
+
+Añade tu correo en `assets/js/config.js`:
+
+```js
+adminEmails: ["tu-correo@ejemplo.com"],
+```
+
+### ⚠️ Importante
+
+- El permiso real vive en **RLS + la tabla `admins`**, nunca en el navegador.
+  Ocultar el menú es solo cosmético: sin la fila en `public.admins` la base de
+  datos rechaza cualquier acceso a datos de otras cuentas.
+- No incluyas `service_role` en el frontend para «hacerte admin»: no hace falta
+  y expondría toda la base de datos.
+- El panel de administración **no permite iniciar sesión como otro usuario**
+  (suplantación): eso requeriría la clave de servicio y no se incluye a propósito.
