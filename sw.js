@@ -20,9 +20,15 @@ const ASSETS = [
   "/assets/js/dashboard.js",
   "/assets/js/catalog.js",
   "/manifest.webmanifest",
+  "/robots.txt",
   "/assets/img/icon.svg",
   "/assets/img/icon-192.png",
-  "/assets/img/icon-512.png"
+  "/assets/img/icon-512.png",
+  "/assets/img/og-image.png",
+  "/assets/img/hero-catalog.png",
+  "/assets/img/example-restaurant.png",
+  "/assets/img/example-fashion.png",
+  "/assets/img/example-materials.png"
 ];
 
 self.addEventListener("install", (e) => {

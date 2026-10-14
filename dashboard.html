@@ -3,8 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Panel — Catalogo Wha</title>
+<title data-i18n="meta.dashboardTitle">Panel — Catalogo Wha</title>
+<meta name="description" data-i18n="meta.dashboardDesc" content="Gestiona productos, categorías, pedidos y la configuración de tu catálogo.">
+<meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#581a80">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Catalogo Wha">
+<meta property="og:title" data-i18n="meta.dashboardTitle" content="Panel — Catalogo Wha">
+<meta property="og:description" data-i18n="meta.dashboardDesc" content="Gestiona productos, categorías, pedidos y la configuración de tu catálogo.">
+<meta property="og:image" content="assets/img/og-image.png">
+<meta property="og:locale" content="es_ES">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/assets/img/icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/assets/css/styles.css">
@@ -17,6 +25,7 @@
     <a class="brand" href="/index.html"><span class="logo">CW</span><span>Catalogo&nbsp;<b>Wha</b></span></a>
     <div class="who small muted" style="padding:0 10px 8px">
       <span id="sideBizName">—</span>
+      <div class="small muted" id="sideUserEmail" style="font-size:.78rem;word-break:break-all"></div>
     </div>
 
     <div class="group-label" data-i18n="nav.home">Principal</div>
@@ -41,9 +50,12 @@
   <main class="dash-main">
     <div class="dash-top">
       <button class="btn btn-ghost btn-sm" id="sideToggle" style="display:none">☰</button>
-      <div class="who small muted">
-        <span id="topBizName">—</span>
-        <b id="topUserName">—</b>
+      <div class="user-chip">
+        <div class="avatar" id="topAvatar">U</div>
+        <div class="who small muted">
+          <span id="topBizName">—</span>
+          <b id="topUserName">—</b>
+        </div>
       </div>
       <div class="spacer"></div>
       <div class="lang" data-lang-root></div>

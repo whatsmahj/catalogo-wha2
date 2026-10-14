@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard.html
+Disallow: /login.html
+Disallow: /assets/js/config.js
+
+# ⚠️ Reemplaza TU-DOMINIO por tu dominio real (ej. catalogo-wha.vercel.app)
+Sitemap: https://TU-DOMINIO/sitemap.xml

@@ -16,11 +16,15 @@ lo envían por WhatsApp en un solo mensaje.
 | **Landing** | Hero, problema/solución, pasos, funciones, precios, FAQ, CTA final, footer |
 | **Cuentas** | Registro e inicio de sesión (Supabase Auth), creación automática del negocio |
 | **Panel** | Inicio, Pedidos, Productos (con formulario), Categorías, Biblioteca, Configuración |
+| **Configuración** | Negocio, WhatsApp, Marca, Moneda, Enlace, Presentación, **Entrega**, **Formas de pago**, **SEO y compartir** — con filtros por categoría (Todo / General / Catálogo / Publicación / Ventas) |
 | **Catálogo público** | Enlace propio `?b=slug`, filtros por categoría, buscador, carrito, pedido por WhatsApp |
 | **Biblioteca de imágenes** | Subida, listado, **eliminación** y reutilización en productos/categorías/marca |
 | **Multiidioma** | 🇪🇸 Español · 🇫🇷 Français · 🇸🇦 العربية (con soporte **RTL**) |
 | **Chatbot** | Responde el procedimiento y **envía la conversación por WhatsApp** con **negrita nativa** (`*texto*`), sin iconos incompatibles |
 | **PWA** | Instalable en móvil, con service worker y funcionamiento offline básico |
+| **Sesión visible** | La landing muestra «Mi panel» / «Ver catálogo» y el correo del usuario cuando hay sesión; el panel muestra avatar, negocio y correo |
+| **SEO** | Metas por idioma, Open Graph/Twitter, `hreflang`, canonical, JSON-LD, `robots.txt` y `sitemap.xml` |
+| **Imágenes** | Hero, ejemplos (restaurante, moda, materiales) y banner para compartir en `assets/img/` |
 | **Menú móvil** | Logo + hamburguesa; incluye banderas de idioma, Iniciar sesión y Crear mi catálogo |
 | **Tipografía** | `-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif` con pesos 750 |
 
@@ -77,10 +81,12 @@ git push -u origin main
 ├── catalogo.html           # Catálogo público + carrito
 ├── manifest.webmanifest    # PWA
 ├── sw.js                   # Service Worker
+├── robots.txt              # Directivas para buscadores
+├── sitemap.xml             # Mapa del sitio (SEO)
 ├── vercel.json             # Configuración de despliegue
 ├── assets/
 │   ├── css/styles.css      # Estilos globales
-│   ├── img/                # Iconos (svg + png)
+│   ├── img/                # Iconos + hero + ejemplos + og-image
 │   └── js/
 │       ├── config.js       # ← TU configuración (Supabase, contacto)
 │       ├── i18n.js         # Traducciones ES / FR / AR
@@ -100,11 +106,48 @@ Todas las cadenas están en `assets/js/i18n.js`. Para editar un texto, busca su
 clave (p. ej. `"hero.title1"`) en los bloques `es`, `fr` y `ar`. El idioma se
 detecta del navegador, se guarda en `localStorage` y el árabe activa `dir="rtl"`.
 
+## 🔍 SEO (multiidioma)
+
+Ya viene configurado en `index.html` y `catalogo.html`:
+
+- **Título y descripción por idioma** (`data-i18n` sobre `<title>`, `meta[name=description]`,
+  `og:title`, `og:description`): al cambiar de idioma se actualizan solos.
+- **`hreflang`** para `es`, `fr`, `ar` y `x-default` + **canonical** con `?lang=xx`.
+- **Open Graph y Twitter Card** para que el enlace se vea bien al compartirlo.
+- **Datos estructurados JSON-LD**: `SoftwareApplication` en la landing y `Store` en cada catálogo.
+- **Idioma en la URL**: `?lang=es|fr|ar` (se guarda en `localStorage`).
+
+### Antes de publicar
+
+1. Sustituye `TU-DOMINIO` en **`robots.txt`** y **`sitemap.xml`** por tu dominio real.
+2. En `assets/js/config.js`, pon tu dominio en `publicDomain` (así el enlace del catálogo y
+   las imágenes de compartir se generan con URL absoluta).
+3. En `index.html` y `catalogo.html`, si quieres previsualizaciones perfectas en WhatsApp/Facebook,
+   cambia `content="assets/img/og-image.png"` por la URL absoluta de tu `og-image.png`.
+4. Añade una entrada `<url>` en `sitemap.xml` por cada catálogo público (`?b=tu-slug`).
+5. En Google Search Console, envía `https://TU-DOMINIO/sitemap.xml`.
+
 ## 💬 Chatbot
 
 Definido en `assets/js/common.js` (objeto `CHAT_KB`). Cada respuesta usa
 `**negrita**`; al enviar por WhatsApp se convierte a `*negrita*` (formato nativo).
 Los mensajes no usan iconos que WhatsApp no muestre correctamente.
+
+## 🚚 Entrega, pagos y SEO del negocio
+
+Cada negocio configura desde el panel (se guardan en Supabase):
+
+| Sección | Campos |
+|---|---|
+| **Entrega** | métodos (`pickup`, `local`, `shipping`, `meetup`), `delivery_fee`, `delivery_time`, `delivery_notes` |
+| **Formas de pago** | métodos (`cash`, `transfer`, `card`, `online`, `wallet`), `payment_notes` |
+| **SEO y compartir** | `seo_title`, `seo_description`, `seo_keywords`, `seo_image` |
+
+La sección **Entrega** y **Formas de pago** también se muestran en el catálogo público y se
+incluyen en el mensaje del pedido por WhatsApp.
+
+> Si ya tenías la base de datos creada, vuelve a ejecutar `supabase/schema.sql`: incluye
+> `alter table ... add column if not exists` para añadir estas columnas sin perder datos.
 
 ## 📱 PWA
 

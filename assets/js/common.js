@@ -277,6 +277,37 @@
     const user = await CW.store.currentUser();
     document.querySelectorAll("[data-auth='in']").forEach((el) => el.classList.toggle("hidden", !user));
     document.querySelectorAll("[data-auth='out']").forEach((el) => el.classList.toggle("hidden", !!user));
+
+    if (user) {
+      const email = user.email || "";
+      const initial = (email.charAt(0) || "U").toUpperCase();
+      document.querySelectorAll("[data-user-email]").forEach((el) => (el.textContent = email));
+      document.querySelectorAll("[data-user-avatar]").forEach((el) => (el.textContent = initial));
+      try {
+        const biz = await CW.store.myBusiness();
+        if (biz) {
+          document.querySelectorAll("[data-user-business]").forEach((el) => (el.textContent = biz.name));
+          document.querySelectorAll("[data-catalog-link]").forEach((el) => { el.href = catalogUrl(biz.slug); });
+        }
+      } catch (e) { /* ignore */ }
+    }
+
+    // SEO: convertir og:image y canonical a URL absoluta (para previsualizaciones al compartir)
+    try {
+      const base = (CFG.publicDomain && CFG.publicDomain.indexOf(".") >= 0)
+        ? location.protocol + "//" + CFG.publicDomain.replace(/^https?:\/\//, "")
+        : location.origin;
+      document.querySelectorAll('meta[property="og:image"], meta[name="twitter:image"]').forEach((m) => {
+        const v = m.getAttribute("content") || "";
+        if (v && !/^https?:\/\//i.test(v)) m.setAttribute("content", base + "/" + v.replace(/^\//, ""));
+      });
+      const ogUrl = document.querySelector('meta[property="og:url"]');
+      if (ogUrl) ogUrl.setAttribute("content", location.href.split("?")[0]);
+      const canon = document.querySelector('link[rel="canonical"]');
+      if (canon && canon.getAttribute("data-base")) {
+        canon.setAttribute("data-base", base + canon.getAttribute("data-base"));
+      }
+    } catch (e) { /* ignore */ }
   }
 
   /* ---------- Init ---------- */

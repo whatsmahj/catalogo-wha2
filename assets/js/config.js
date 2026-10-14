@@ -11,8 +11,8 @@
    =========================================================== */
 window.APP_CONFIG = {
   // --- Supabase (obligatorio para multiusuario real) ---
-  supabaseUrl: "",      // ej. "https://anhibmtcirtvjwtykdjc.supabase.co/rest/v1/"
-  supabaseAnonKey: "",  // ej. "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFld2JzZnh0YmlkaHN1aW94ZWJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MDI1NjAsImV4cCI6MjEwNzQ3ODU2MH0.57pDbjbU84Fa8AAxu3c150OpHnWjpNaimhZAqYR4gPA"
+  supabaseUrl: "",      // ej. "https://xxxxxxxx.supabase.co"
+  supabaseAnonKey: "",  // ej. "eyJhbGciOi..."
 
   // --- Marca y contacto ---
   brandName: "Catalogo Wha",

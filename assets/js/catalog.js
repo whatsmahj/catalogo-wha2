@@ -47,6 +47,8 @@
       $("#catalogHero").style.backgroundSize = "cover";
       $("#catalogHero").style.backgroundPosition = "center";
     }
+    applyBusinessSeo();
+    renderBusinessInfo();
     if (business.logo_url) {
       $("#heroLogo").innerHTML = `<img src="${U.escapeHtml(business.logo_url)}" alt="" style="height:64px;border-radius:14px;background:#fff;padding:6px">`;
       $("#catLogo").outerHTML = `<img id="catLogo" src="${U.escapeHtml(business.logo_url)}" alt="" style="height:34px;width:34px;object-fit:cover;border-radius:10px">`;
@@ -55,6 +57,7 @@
     $("#year").textContent = new Date().getFullYear();
 
     loadCart();
+    updateJsonLd();
 
     categories = await S.listCategories(business.id);
     products = (await S.listProducts(business.id)).filter((p) => p.active !== false);
@@ -68,6 +71,82 @@
     $$("[data-cart-close]").forEach((b) => b.addEventListener("click", () => $("#cartDrawer").classList.remove("open")));
     $("#sendOrder").addEventListener("click", sendOrder);
     document.addEventListener("langchange", () => { renderChips(); renderProducts(); renderCart(); });
+  }
+
+  /* ---------- SEO dinámico del negocio ---------- */
+  function applyBusinessSeo() {
+    const title = business.seo_title || (business.name + " — " + (business.hero_title || business.description || "Catálogo online"));
+    const desc = business.seo_description || business.hero_desc || business.description || (business.name + " — catálogo online, pedidos por WhatsApp.");
+    const img = business.seo_image || business.hero_image || business.logo_url || "assets/img/og-image.png";
+    const url = U.catalogUrl(business.slug);
+
+    document.title = title;
+    const set = (sel, attr, val) => { const el = document.querySelector(sel); if (el) el.setAttribute(attr, val); };
+    set('meta[name="description"]', "content", desc);
+    set('meta[property="og:title"]', "content", title);
+    set('meta[property="og:description"]', "content", desc);
+    set('meta[property="og:image"]', "content", img);
+    set('meta[property="og:url"]', "content", url);
+    set('meta[name="twitter:title"]', "content", title);
+    set('meta[name="twitter:description"]', "content", desc);
+    set('meta[name="twitter:image"]', "content", img);
+    if (business.seo_keywords) set('meta[name="keywords"]', "content", business.seo_keywords);
+    const canon = document.querySelector('link[rel="canonical"]');
+    if (canon) { canon.setAttribute("data-base", url); canon.setAttribute("href", url); }
+  }
+
+  function updateJsonLd() {
+    const old = document.getElementById("bizJsonLd");
+    if (old) old.remove();
+    const data = {
+      "@context": "https://schema.org",
+      "@type": "Store",
+      "name": business.name,
+      "description": business.seo_description || business.description || "",
+      "url": U.catalogUrl(business.slug),
+      "telephone": "+" + String(business.whatsapp || "").replace(/\D/g, ""),
+      "image": business.seo_image || business.hero_image || business.logo_url || undefined,
+      "address": business.city ? { "@type": "PostalAddress", "addressLocality": business.city, "addressCountry": business.country || "" } : undefined,
+      "currenciesAccepted": business.currency,
+      "paymentAccepted": (business.payments || "").replace(/\[(\w+)\]/g, "$1 ").trim() || undefined
+    };
+    const s = document.createElement("script");
+    s.type = "application/ld+json";
+    s.id = "bizJsonLd";
+    s.textContent = JSON.stringify(data);
+    document.head.appendChild(s);
+  }
+
+  /* ---------- Info de entrega y pago ---------- */
+  const DLV_LABEL = { pickup: "cfg.pickup", local: "cfg.localDelivery", shipping: "cfg.shipping", meetup: "cfg.meetup" };
+  const DLV_ICO = { pickup: "🏬", local: "🛵", shipping: "📦", meetup: "🤝" };
+  const PAY_LABEL = { cash: "cfg.cash", transfer: "cfg.bankTransfer", card: "cfg.cardOnDelivery", online: "cfg.onlinePayment", wallet: "cfg.mobileWallet" };
+  const PAY_ICO = { cash: "💵", transfer: "🏦", card: "💳", online: "🌐", wallet: "📱" };
+
+  function parseTags(v) {
+    const out = [];
+    String(v || "").replace(/\[(\w+)\]/g, (m, k) => { out.push(k); return ""; });
+    return out;
+  }
+
+  function renderBusinessInfo() {
+    const box = $("#catInfo");
+    if (!box) return;
+    const dlv = parseTags(business.delivery);
+    const pay = parseTags(business.payments);
+    if (!dlv.length && !pay.length && !business.delivery_notes && !business.payment_notes) { box.classList.add("hidden"); return; }
+    box.classList.remove("hidden");
+    box.innerHTML = `
+      <div class="grid cols-2" style="gap:16px">
+        ${dlv.length || business.delivery_notes ? `<div class="card"><h3>${t("cfg.delivery")}</h3>
+          <div class="row wrap" style="gap:8px">${dlv.map((k) => `<span class="badge info">${DLV_ICO[k] || ""} ${t(DLV_LABEL[k] || k)}</span>`).join("")}</div>
+          ${business.delivery_fee ? `<p class="small mt-2">${t("cfg.deliveryFee")}: <strong>${U.currency(business.delivery_fee, business.currency)}</strong></p>` : ""}
+          ${business.delivery_time ? `<p class="small">${t("cfg.deliveryTime")}: <strong>${U.escapeHtml(business.delivery_time)}</strong></p>` : ""}
+          ${business.delivery_notes ? `<p class="small muted">${U.escapeHtml(business.delivery_notes)}</p>` : ""}</div>` : ""}
+        ${pay.length || business.payment_notes ? `<div class="card"><h3>${t("cfg.payments")}</h3>
+          <div class="row wrap" style="gap:8px">${pay.map((k) => `<span class="badge ok">${PAY_ICO[k] || ""} ${t(PAY_LABEL[k] || k)}</span>`).join("")}</div>
+          ${business.payment_notes ? `<p class="small muted mt-2">${U.escapeHtml(business.payment_notes)}</p>` : ""}</div>` : ""}
+      </div>`;
   }
 
   /* ---------- Chips de categorías ---------- */
@@ -172,6 +251,18 @@
     });
     msg += "\n*" + t("catalog.subtotal") + ":* " + U.currency(cartTotal(), business.currency) + "\n";
     if (note) msg += "\n*" + t("catalog.note") + ":* " + note + "\n";
+
+    // Entrega y formas de pago configuradas por el negocio
+    const dlv = parseTags(business.delivery).map((k) => t(DLV_LABEL[k] || k));
+    const pay = parseTags(business.payments).map((k) => t(PAY_LABEL[k] || k));
+    if (dlv.length || business.delivery_time || business.delivery_fee) {
+      msg += "\n*" + t("cfg.delivery") + ":* " + (dlv.join(", ") || "—");
+      if (business.delivery_time) msg += " (" + business.delivery_time + ")";
+      if (business.delivery_fee) msg += " — " + U.currency(business.delivery_fee, business.currency);
+      msg += "\n";
+    }
+    if (pay.length) msg += "*" + t("cfg.payments") + ":* " + pay.join(", ") + "\n";
+
     msg += "\n" + t("catalog.poweredBy");
 
     // Guardar el pedido en el panel del negocio

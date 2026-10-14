@@ -99,6 +99,20 @@ create table if not exists public.library (
 create index if not exists library_business_idx on public.library(business_id);
 
 -- ------------------------------------------------------------
+-- 5.b) COLUMNAS ADICIONALES (entrega, pagos y SEO)
+--      Se añaden con IF NOT EXISTS: seguro de re-ejecutar.
+-- ------------------------------------------------------------
+ alter table public.businesses
+  add column if not exists delivery_fee    numeric(12,2) default 0,
+  add column if not exists delivery_time   text default '',
+  add column if not exists delivery_notes  text default '',
+  add column if not exists payment_notes   text default '',
+  add column if not exists seo_title       text default '',
+  add column if not exists seo_description text default '',
+  add column if not exists seo_keywords    text default '',
+  add column if not exists seo_image       text default '';
+
+-- ------------------------------------------------------------
 -- 6) SEGURIDAD (Row Level Security)
 -- ------------------------------------------------------------
 alter table public.businesses enable row level security;

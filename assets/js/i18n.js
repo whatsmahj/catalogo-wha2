@@ -41,6 +41,7 @@
       "hero.trust1": "Sin tarjeta de crédito",
       "hero.trust2": "Listo en 3 pasos",
       "hero.trust3": "Enlace propio para compartir",
+      "hero.imgAlt": "Catálogo de productos en un móvil con pedido por WhatsApp",
       "hero.mock.business": "Tu negocio",
       "hero.mock.collection": "Nueva colección",
       "hero.mock.title": "Tu estilo. Todos los días.",
@@ -505,6 +506,7 @@
       "hero.trust1": "Sans carte bancaire",
       "hero.trust2": "Prêt en 3 étapes",
       "hero.trust3": "Un lien à partager",
+      "hero.imgAlt": "Catalogue de produits sur un mobile avec commande WhatsApp",
       "hero.mock.business": "Votre commerce",
       "hero.mock.collection": "Nouvelle collection",
       "hero.mock.title": "Votre style. Tous les jours.",
@@ -969,6 +971,7 @@
       "hero.trust1": "بدون بطاقة بنكية",
       "hero.trust2": "جاهز في 3 خطوات",
       "hero.trust3": "رابط خاص للمشاركة",
+      "hero.imgAlt": "كتالوج منتجات على الهاتف مع طلب عبر واتساب",
       "hero.mock.business": "متجرك",
       "hero.mock.collection": "مجموعة جديدة",
       "hero.mock.title": "أناقتك كل يوم.",
@@ -1405,12 +1408,234 @@
     }
   };
 
+  /* --- Cadenas adicionales (se fusionan con DICT) --- */
+  const EXTRA = {
+    es: {
+      "nav.myPanel": "Mi panel",
+      "nav.hello": "Hola",
+      "meta.loginTitle": "Iniciar sesión — Catalogo Wha",
+      "meta.loginDesc": "Accede a tu panel para gestionar tu catálogo, productos y pedidos de WhatsApp.",
+      "meta.dashboardTitle": "Panel — Catalogo Wha",
+      "meta.dashboardDesc": "Gestiona productos, categorías, pedidos y la configuración de tu catálogo.",
+      "meta.catalogTitle": "Catálogo — Catalogo Wha",
+      "meta.catalogDesc": "Explora los productos y envía tu pedido por WhatsApp.",
+
+      "cfg.emptyFilter": "No hay opciones en esta categoría.",
+      "cfg.tipTitle": "Consejo",
+      "cfg.deliveryMethods": "Métodos de entrega",
+      "cfg.deliveryHow": "¿Cómo entregas tus pedidos?",
+      "cfg.deliveryHowSub": "Marca las opciones que ofreces. Tus clientes las verán en el catálogo.",
+      "cfg.pickup": "Retiro en tienda",
+      "cfg.localDelivery": "Entrega local",
+      "cfg.shipping": "Envío nacional",
+      "cfg.meetup": "Punto de encuentro",
+      "cfg.deliveryFee": "Costo de entrega",
+      "cfg.deliveryTime": "Tiempo estimado",
+      "cfg.deliveryTimePh": "Ej. 24 a 48 horas",
+      "cfg.deliveryNotes": "Notas de entrega",
+      "cfg.deliveryNotesPh": "Zonas que cubres, horarios, condiciones…",
+      "cfg.deliveryTip": "Los pedidos se acuerdan por WhatsApp. Indica aquí los detalles para que tus clientes sepan qué esperar.",
+      "cfg.paymentMethods": "Formas de pago",
+      "cfg.paymentHow": "¿Qué formas de pago aceptas?",
+      "cfg.paymentHowSub": "El cliente indicará su preferencia al enviar el pedido.",
+      "cfg.cash": "Efectivo",
+      "cfg.bankTransfer": "Transferencia bancaria",
+      "cfg.cardOnDelivery": "Tarjeta al recibir",
+      "cfg.onlinePayment": "Pago online",
+      "cfg.mobileWallet": "Cartera móvil",
+      "cfg.paymentNotes": "Notas de pago",
+      "cfg.paymentNotesPh": "Datos bancarios, condiciones o aclaraciones…",
+      "cfg.secureTitle": "Pago seguro",
+      "cfg.paymentTip": "Catalogo Wha no procesa pagos: tú coordinas el cobro directamente con tu cliente.",
+      "cfg.seoBasic": "Datos para buscadores",
+      "cfg.seoTitleHint": "Máximo 60 caracteres. Es el título azul que aparece en Google.",
+      "cfg.seoDescHint": "Máximo 160 caracteres. Resume tu catálogo para quien lo encuentre en Google.",
+      "cfg.seoKeywords": "Palabras clave",
+      "cfg.seoKeywordsPh": "ropa, moda, boutique, Marruecos",
+      "cfg.seoPreview": "Vista previa al compartir",
+      "cfg.seoAuto": "Automático",
+      "cfg.seoAutoSub": "Si dejas estos campos vacíos, usaremos el nombre y la descripción de tu negocio.",
+
+      "stats.title": "Negocios que ya venden por WhatsApp",
+      "stats.s1": "Negocios activos",
+      "stats.s2": "Pedidos enviados",
+      "stats.s3": "Países",
+      "stats.s4": "Soporte",
+      "examples.e1.title": "Restaurantes",
+      "examples.e1.text": "Menú digital con fotos, precios y pedido directo por WhatsApp.",
+      "examples.e2.title": "Moda y boutique",
+      "examples.e2.text": "Colecciones organizadas por categorías, tallas y colores.",
+      "examples.e3.title": "Materiales y construcción",
+      "examples.e3.text": "Catálogos técnicos con precios y disponibilidad siempre al día.",
+      "testimonials.eyebrow": "Testimonios",
+      "testimonials.title": "Lo que dicen quienes ya venden con Catalogo Wha",
+      "testimonials.t1": "Antes enviaba fotos una por una. Ahora mando un enlace y los pedidos llegan armados. Gané horas al día.",
+      "testimonials.t1.who": "Sara M. — Boutique de moda",
+      "testimonials.t2": "Mis clientes encuentran todo solos y yo recibo el pedido completo por WhatsApp. Muy simple.",
+      "testimonials.t2.who": "Youssef A. — Materiales de construcción",
+      "testimonials.t3": "Instalé la app en el móvil y actualizo precios desde el mostrador. Cambió mi forma de vender.",
+      "testimonials.t3.who": "Nadia R. — Tienda de alimentación",
+      "faq.q6": "¿Puedo cambiar los idiomas de mi catálogo?",
+      "faq.a6": "Sí. El catálogo está disponible en español, francés y árabe, y se adapta al idioma del visitante.",
+      "faq.q7": "¿Necesito conocimientos técnicos?",
+      "faq.a7": "No. Todo se configura desde el panel con formularios simples, sin escribir código."
+    },
+    fr: {
+      "nav.myPanel": "Mon espace",
+      "nav.hello": "Bonjour",
+      "meta.loginTitle": "Se connecter — Catalogo Wha",
+      "meta.loginDesc": "Accédez à votre espace pour gérer votre catalogue, vos produits et vos commandes WhatsApp.",
+      "meta.dashboardTitle": "Espace — Catalogo Wha",
+      "meta.dashboardDesc": "Gérez vos produits, catégories, commandes et la configuration de votre catalogue.",
+      "meta.catalogTitle": "Catalogue — Catalogo Wha",
+      "meta.catalogDesc": "Découvrez les produits et envoyez votre commande sur WhatsApp.",
+
+      "cfg.emptyFilter": "Aucune option dans cette catégorie.",
+      "cfg.tipTitle": "Conseil",
+      "cfg.deliveryMethods": "Modes de livraison",
+      "cfg.deliveryHow": "Comment livrez-vous vos commandes ?",
+      "cfg.deliveryHowSub": "Cochez les options que vous proposez. Vos clients les verront dans le catalogue.",
+      "cfg.pickup": "Retrait en boutique",
+      "cfg.localDelivery": "Livraison locale",
+      "cfg.shipping": "Envoi national",
+      "cfg.meetup": "Point de rencontre",
+      "cfg.deliveryFee": "Frais de livraison",
+      "cfg.deliveryTime": "Délai estimé",
+      "cfg.deliveryTimePh": "Ex. 24 à 48 heures",
+      "cfg.deliveryNotes": "Notes de livraison",
+      "cfg.deliveryNotesPh": "Zones couvertes, horaires, conditions…",
+      "cfg.deliveryTip": "Les commandes se concluent sur WhatsApp. Indiquez ici les détails pour que vos clients sachent à quoi s'attendre.",
+      "cfg.paymentMethods": "Moyens de paiement",
+      "cfg.paymentHow": "Quels moyens de paiement acceptez-vous ?",
+      "cfg.paymentHowSub": "Le client indiquera sa préférence lors de sa commande.",
+      "cfg.cash": "Espèces",
+      "cfg.bankTransfer": "Virement bancaire",
+      "cfg.cardOnDelivery": "Carte à la livraison",
+      "cfg.onlinePayment": "Paiement en ligne",
+      "cfg.mobileWallet": "Portefeuille mobile",
+      "cfg.paymentNotes": "Notes de paiement",
+      "cfg.paymentNotesPh": "Coordonnées bancaires, conditions ou précisions…",
+      "cfg.secureTitle": "Paiement sécurisé",
+      "cfg.paymentTip": "Catalogo Wha ne traite pas les paiements : vous encaissez directement auprès de votre client.",
+      "cfg.seoBasic": "Données pour les moteurs de recherche",
+      "cfg.seoTitleHint": "60 caractères maximum. C'est le titre bleu affiché dans Google.",
+      "cfg.seoDescHint": "160 caractères maximum. Résumez votre catalogue pour Google.",
+      "cfg.seoKeywords": "Mots-clés",
+      "cfg.seoKeywordsPh": "vêtements, mode, boutique, Maroc",
+      "cfg.seoPreview": "Aperçu au partage",
+      "cfg.seoAuto": "Automatique",
+      "cfg.seoAutoSub": "Si vous laissez ces champs vides, nous utilisons le nom et la description de votre commerce.",
+
+      "stats.title": "Des commerces qui vendent déjà sur WhatsApp",
+      "stats.s1": "Commerces actifs",
+      "stats.s2": "Commandes envoyées",
+      "stats.s3": "Pays",
+      "stats.s4": "Support",
+      "examples.e1.title": "Restaurants",
+      "examples.e1.text": "Menu digital avec photos, prix et commande directe sur WhatsApp.",
+      "examples.e2.title": "Mode et boutique",
+      "examples.e2.text": "Collections organisées par catégories, tailles et couleurs.",
+      "examples.e3.title": "Matériaux et construction",
+      "examples.e3.text": "Catalogues techniques avec prix et disponibilité à jour.",
+      "testimonials.eyebrow": "Témoignages",
+      "testimonials.title": "Ce que disent ceux qui vendent déjà avec Catalogo Wha",
+      "testimonials.t1": "Avant, j'envoyais les photos une par une. Maintenant j'envoie un lien et les commandes arrivent prêtes. J'ai gagné des heures par jour.",
+      "testimonials.t1.who": "Sara M. — Boutique de mode",
+      "testimonials.t2": "Mes clients trouvent tout seuls et je reçois la commande complète sur WhatsApp. Très simple.",
+      "testimonials.t2.who": "Youssef A. — Matériaux de construction",
+      "testimonials.t3": "J'ai installé l'app sur mon mobile et je mets à jour les prix depuis le comptoir. Ça a changé ma façon de vendre.",
+      "testimonials.t3.who": "Nadia R. — Épicerie",
+      "faq.q6": "Puis-je changer les langues de mon catalogue ?",
+      "faq.a6": "Oui. Le catalogue est disponible en espagnol, français et arabe, et s'adapte à la langue du visiteur.",
+      "faq.q7": "Faut-il des connaissances techniques ?",
+      "faq.a7": "Non. Tout se configure depuis l'espace avec des formulaires simples, sans écrire de code."
+    },
+    ar: {
+      "nav.myPanel": "لوحتي",
+      "nav.hello": "مرحبًا",
+      "meta.loginTitle": "تسجيل الدخول — Catalogo Wha",
+      "meta.loginDesc": "ادخل إلى لوحتك لإدارة كتالوجك ومنتجاتك وطلبات واتساب.",
+      "meta.dashboardTitle": "اللوحة — Catalogo Wha",
+      "meta.dashboardDesc": "أدر المنتجات والتصنيفات والطلبات وإعدادات كتالوجك.",
+      "meta.catalogTitle": "الكتالوج — Catalogo Wha",
+      "meta.catalogDesc": "استعرض المنتجات وأرسل طلبك على واتساب.",
+
+      "cfg.emptyFilter": "لا توجد خيارات في هذه الفئة.",
+      "cfg.tipTitle": "نصيحة",
+      "cfg.deliveryMethods": "طرق التوصيل",
+      "cfg.deliveryHow": "كيف توصّل طلباتك؟",
+      "cfg.deliveryHowSub": "حدّد الخيارات التي توفرها. سيراها عملاؤك في الكتالوج.",
+      "cfg.pickup": "الاستلام من المتجر",
+      "cfg.localDelivery": "توصيل محلي",
+      "cfg.shipping": "شحن وطني",
+      "cfg.meetup": "نقطة لقاء",
+      "cfg.deliveryFee": "تكلفة التوصيل",
+      "cfg.deliveryTime": "المدة المتوقعة",
+      "cfg.deliveryTimePh": "مثال: 24 إلى 48 ساعة",
+      "cfg.deliveryNotes": "ملاحظات التوصيل",
+      "cfg.deliveryNotesPh": "المناطق المغطاة، الأوقات، الشروط…",
+      "cfg.deliveryTip": "يُتفق على الطلبات عبر واتساب. اذكر هنا التفاصيل ليعرف عملاؤك ما يتوقعون.",
+      "cfg.paymentMethods": "طرق الدفع",
+      "cfg.paymentHow": "ما طرق الدفع التي تقبلها؟",
+      "cfg.paymentHowSub": "سيحدد العميل تفضيله عند إرسال الطلب.",
+      "cfg.cash": "نقدًا",
+      "cfg.bankTransfer": "تحويل بنكي",
+      "cfg.cardOnDelivery": "بطاقة عند الاستلام",
+      "cfg.onlinePayment": "دفع إلكتروني",
+      "cfg.mobileWallet": "محفظة إلكترونية",
+      "cfg.paymentNotes": "ملاحظات الدفع",
+      "cfg.paymentNotesPh": "المعلومات البنكية أو الشروط أو التوضيحات…",
+      "cfg.secureTitle": "دفع آمن",
+      "cfg.paymentTip": "لا يعالج Catalogo Wha المدفوعات: أنت تحصّل مباشرة من عميلك.",
+      "cfg.seoBasic": "بيانات لمحركات البحث",
+      "cfg.seoTitleHint": "60 حرفًا كحد أقصى. هو العنوان الأزرق في جوجل.",
+      "cfg.seoDescHint": "160 حرفًا كحد أقصى. لخّص كتالوجك لمحركات البحث.",
+      "cfg.seoKeywords": "الكلمات المفتاحية",
+      "cfg.seoKeywordsPh": "ملابس، أزياء، متجر، المغرب",
+      "cfg.seoPreview": "معاينة عند المشاركة",
+      "cfg.seoAuto": "تلقائي",
+      "cfg.seoAutoSub": "إذا تركت هذه الحقول فارغة سنستخدم اسم متجرك ووصفه.",
+
+      "stats.title": "متاجر تبيع بالفعل عبر واتساب",
+      "stats.s1": "متاجر نشطة",
+      "stats.s2": "طلبات مرسلة",
+      "stats.s3": "الدول",
+      "stats.s4": "الدعم",
+      "examples.e1.title": "المطاعم",
+      "examples.e1.text": "قائمة رقمية بالصور والأسعار والطلب مباشرة عبر واتساب.",
+      "examples.e2.title": "الأزياء والمتاجر",
+      "examples.e2.text": "مجموعات منظمة حسب التصنيفات والمقاسات والألوان.",
+      "examples.e3.title": "مواد البناء",
+      "examples.e3.text": "كتالوجات فنية بالأسعار والتوفر المحدّث.",
+      "testimonials.eyebrow": "شهادات",
+      "testimonials.title": "ماذا يقول من يبيعون مع Catalogo Wha",
+      "testimonials.t1": "كنت أرسل الصور واحدة واحدة. الآن أرسل رابطًا وتصل الطلبات جاهزة. وفّرت ساعات يوميًا.",
+      "testimonials.t1.who": "سارة م. — متجر أزياء",
+      "testimonials.t2": "يجد عملائي كل شيء بأنفسهم وأستقبل الطلب كاملًا على واتساب. بسيط جدًا.",
+      "testimonials.t2.who": "يوسف أ. — مواد البناء",
+      "testimonials.t3": "ثبّتُ التطبيق على هاتفي وأحدّث الأسعار من المحل. غيّر طريقة بيعي.",
+      "testimonials.t3.who": "نادية ر. — متجر مواد غذائية",
+      "faq.q6": "هل يمكنني تغيير لغات كتالوجي؟",
+      "faq.a6": "نعم. الكتالوج متوفر بالإسبانية والفرنسية والعربية ويتكيّف مع لغة الزائر.",
+      "faq.q7": "هل أحتاج خبرة تقنية؟",
+      "faq.a7": "لا. كل شيء يُضبط من اللوحة بنماذج بسيطة دون كتابة أي كود."
+    }
+  };
+  Object.keys(EXTRA).forEach((lg) => { if (DICT[lg]) Object.assign(DICT[lg], EXTRA[lg]); });
+
   const RTL = { ar: true };
   const KEY = "cw_lang";
 
   function detect() {
+    // 1) Parámetro ?lang=xx (útil para SEO / hreflang)
+    try {
+      const q = new URLSearchParams(location.search).get("lang");
+      if (q && DICT[q]) return q;
+    } catch (e) { /* ignore */ }
+    // 2) Preferencia guardada
     const saved = localStorage.getItem(KEY);
     if (saved && DICT[saved]) return saved;
+    // 3) Idioma del navegador
     const nav = (navigator.language || "es").slice(0, 2).toLowerCase();
     if (DICT[nav]) return nav;
     return "es";
@@ -1437,8 +1662,30 @@
     scope.querySelectorAll("[data-i18n-title]").forEach((el) => {
       el.setAttribute("title", t(el.getAttribute("data-i18n-title")));
     });
+    scope.querySelectorAll("[data-i18n-alt]").forEach((el) => {
+      el.setAttribute("alt", t(el.getAttribute("data-i18n-alt")));
+    });
     const titleEl = document.querySelector("title[data-i18n]");
     if (titleEl) document.title = t(titleEl.getAttribute("data-i18n"));
+    // SEO: meta tags con data-i18n (description, og:title, og:description…)
+    scope.querySelectorAll("meta[data-i18n]").forEach((el) => {
+      el.setAttribute("content", t(el.getAttribute("data-i18n")));
+    });
+    // SEO: og:title / og:description reflejan la página actual
+    const ogT = document.querySelector('meta[property="og:title"]');
+    if (ogT && !ogT.hasAttribute("data-i18n")) ogT.setAttribute("content", document.title);
+    const ogD = document.querySelector('meta[property="og:description"]');
+    const metaD = document.querySelector('meta[name="description"]');
+    if (ogD && metaD) ogD.setAttribute("content", metaD.getAttribute("content") || "");
+    // SEO: locale y dirección
+    const ogLocale = document.querySelector('meta[property="og:locale"]');
+    if (ogLocale) ogLocale.setAttribute("content", { es: "es_ES", fr: "fr_FR", ar: "ar_MA" }[current] || "es_ES");
+    // SEO: canonical con el idioma actual
+    const canon = document.querySelector('link[rel="canonical"]');
+    if (canon) {
+      const base = canon.getAttribute("data-base") || (location.origin + location.pathname);
+      canon.setAttribute("href", base + "?lang=" + current);
+    }
     document.querySelectorAll("[data-lang-btn]").forEach((b) => {
       b.classList.toggle("active", b.getAttribute("data-lang-btn") === current);
     });
@@ -1451,6 +1698,12 @@
     const dir = RTL[lang] ? "rtl" : "ltr";
     document.documentElement.setAttribute("lang", lang);
     document.documentElement.setAttribute("dir", dir);
+    // Reflejar el idioma en la URL (SEO / enlaces compartibles)
+    try {
+      const url = new URL(location.href);
+      url.searchParams.set("lang", lang);
+      history.replaceState(null, "", url.toString());
+    } catch (e) { /* ignore */ }
     apply();
     document.dispatchEvent(new CustomEvent("langchange", { detail: { lang } }));
   }

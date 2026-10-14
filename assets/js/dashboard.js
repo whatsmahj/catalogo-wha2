@@ -133,6 +133,9 @@
         case "config-currency": view.innerHTML = viewConfigCurrency(); bindConfigCurrency(); break;
         case "config-link": view.innerHTML = viewConfigLink(); bindConfigLink(); break;
         case "config-presentation": view.innerHTML = viewConfigPresentation(); bindConfigPresentation(); break;
+        case "config-delivery": view.innerHTML = viewConfigDelivery(); bindConfigDelivery(); break;
+        case "config-payments": view.innerHTML = viewConfigPayments(); bindConfigPayments(); break;
+        case "config-seo": view.innerHTML = viewConfigSeo(); bindConfigSeo(); break;
         default: view.innerHTML = viewHome(); bindHome();
       }
     } catch (e) { console.error(e); view.innerHTML = `<div class="alert alert-error">${U.escapeHtml(e.message || t("common.error"))}</div>`; }
@@ -616,8 +619,8 @@
   /* ==================== VISTA: CONFIGURACIÓN ==================== */
   function viewConfig() {
     const b = state.business;
-    const card = (route, ico, title, sub, label, status) => `
-      <div class="card">
+    const card = (route, groups, ico, title, sub, label, status) => `
+      <div class="card config-card" data-groups="${groups}">
         <div class="row"><div class="ico" style="margin:0">${ico}</div><div class="spacer"></div>${status}</div>
         <div class="small muted mt-2" style="text-transform:uppercase;font-weight:700">${title}</div>
         <h3>${sub}</h3>
@@ -625,25 +628,48 @@
       </div>`;
     const done = `<span class="badge ok">✓ ${t("cfg.configured")}</span>`;
     const opt = `<span class="badge off">○ ${t("cfg.optional")}</span>`;
+    const tabs = [
+      { key: "all", label: t("cfg.tabAll") },
+      { key: "general", label: t("cfg.tabGeneral") },
+      { key: "catalog", label: t("cfg.tabCatalog") },
+      { key: "publish", label: t("cfg.tabPublish") },
+      { key: "sales", label: t("cfg.tabSales") }
+    ];
     return `
       <div class="page-head"><h1>${t("cfg.title")}</h1><p>${t("cfg.sub")}</p></div>
-      <div class="row wrap mb-3">
-        <span class="chip active">${t("cfg.tabAll")}</span>
-        <span class="chip">${t("cfg.tabGeneral")}</span>
-        <span class="chip">${t("cfg.tabCatalog")}</span>
-        <span class="chip">${t("cfg.tabPublish")}</span>
-        <span class="chip">${t("cfg.tabSales")}</span>
+      <div class="row wrap mb-3" id="cfgTabs">
+        ${tabs.map((tb) => `<button class="chip ${tb.key === "all" ? "active" : ""}" data-filter="${tb.key}">${tb.label}</button>`).join("")}
       </div>
-      <div class="grid cols-3">
-        ${card("config-business", "📄", t("cfg.businessInfo"), t("cfg.businessInfoSub"), t("cfg.configure"), done)}
-        ${card("config-whatsapp", "💬", t("cfg.whatsapp"), t("cfg.whatsappSub"), t("cfg.changeNumber"), done)}
-        ${card("config-brand", "🎨", t("cfg.brand"), t("cfg.brandSub"), t("cfg.personalize"), opt)}
-        ${card("config-currency", "💱", t("cfg.currency"), t("cfg.currencySub"), t("cfg.changeCurrency"), done)}
-        ${card("config-link", "🔗", t("cfg.link"), t("cfg.linkSub"), t("cfg.changeLink"), done)}
-        ${card("config-presentation", "🖼️", t("cfg.presentation"), t("cfg.presentationSub"), t("cfg.personalize"), opt)}
-      </div>`;
+      <div class="grid cols-3" id="cfgGrid">
+        ${card("config-business", "general", "📄", t("cfg.businessInfo"), t("cfg.businessInfoSub"), t("cfg.configure"), done)}
+        ${card("config-whatsapp", "general,sales", "💬", t("cfg.whatsapp"), t("cfg.whatsappSub"), t("cfg.changeNumber"), done)}
+        ${card("config-brand", "catalog,publish", "🎨", t("cfg.brand"), t("cfg.brandSub"), t("cfg.personalize"), b.logo_url ? done : opt)}
+        ${card("config-currency", "general,sales", "💱", t("cfg.currency"), t("cfg.currencySub"), t("cfg.changeCurrency"), done)}
+        ${card("config-link", "catalog,publish", "🔗", t("cfg.link"), t("cfg.linkSub"), t("cfg.changeLink"), done)}
+        ${card("config-presentation", "catalog,publish", "🖼️", t("cfg.presentation"), t("cfg.presentationSub"), t("cfg.personalize"), b.hero_enabled ? done : opt)}
+        ${card("config-delivery", "sales", "🚚", t("cfg.delivery"), t("cfg.deliverySub"), t("cfg.configure"), b.delivery ? done : opt)}
+        ${card("config-payments", "sales", "💳", t("cfg.payments"), t("cfg.paymentsSub"), t("cfg.configure"), b.payments ? done : opt)}
+        ${card("config-seo", "publish", "🔍", t("cfg.seo"), t("cfg.seoSub"), t("cfg.configure"), b.seo_title ? done : opt)}
+      </div>
+      <div class="empty hidden" id="cfgEmpty"><div class="ico">🗂️</div><p>${t("cfg.emptyFilter")}</p></div>`;
   }
-  function bindConfig() {}
+  function bindConfig() {
+    const tabs = $$("#cfgTabs .chip");
+    const cards = $$("#cfgGrid .config-card");
+    const empty = $("#cfgEmpty");
+    tabs.forEach((chip) => chip.addEventListener("click", () => {
+      const f = chip.getAttribute("data-filter");
+      tabs.forEach((c) => c.classList.toggle("active", c === chip));
+      let visible = 0;
+      cards.forEach((c) => {
+        const groups = (c.getAttribute("data-groups") || "").split(",");
+        const show = f === "all" || groups.indexOf(f) >= 0;
+        c.classList.toggle("hidden", !show);
+        if (show) visible++;
+      });
+      if (empty) empty.classList.toggle("hidden", visible > 0);
+    }));
+  }
 
   function configHead(title, sub) {
     return `<div class="page-head"><div class="small muted">${t("cfg.title")} / ${title}</div><h1>${title}</h1><p>${sub}</p></div>
@@ -845,6 +871,174 @@
     });
   }
 
+  /* ---- Entrega ---- */
+  function viewConfigDelivery() {
+    const b = state.business;
+    const d = (b.delivery || "");
+    const has = (k) => d.indexOf("[" + k + "]") >= 0;
+    const method = (k, ico, label) => `
+      <label class="opt-row"><input type="checkbox" class="dlvMethod" value="${k}" ${has(k) ? "checked" : ""}>
+        <span class="opt-ico">${ico}</span><span>${label}</span></label>`;
+    return configHead(t("cfg.delivery"), t("cfg.deliverySub")) + `
+      <div class="card mb-3" style="max-width:820px">
+        <div class="small muted" style="text-transform:uppercase;font-weight:700">${t("cfg.deliveryMethods")}</div>
+        <h3>${t("cfg.deliveryHow")}</h3><p class="small">${t("cfg.deliveryHowSub")}</p>
+        <div class="opt-list">
+          ${method("pickup", "🏬", t("cfg.pickup"))}
+          ${method("local", "🛵", t("cfg.localDelivery"))}
+          ${method("shipping", "📦", t("cfg.shipping"))}
+          ${method("meetup", "🤝", t("cfg.meetup"))}
+        </div>
+        <div class="grid cols-2 mt-3">
+          <div class="field"><label>${t("cfg.deliveryFee")} (${b.currency})</label>
+            <input class="input" id="dlvFee" type="number" step="0.01" value="${U.escapeHtml(String(b.delivery_fee || ""))}"></div>
+          <div class="field"><label>${t("cfg.deliveryTime")}</label>
+            <input class="input" id="dlvTime" value="${U.escapeHtml(b.delivery_time || "")}" placeholder="${t("cfg.deliveryTimePh")}"></div>
+        </div>
+        <div class="field"><label>${t("cfg.deliveryNotes")}</label>
+          <textarea class="textarea" id="dlvNotes" placeholder="${t("cfg.deliveryNotesPh")}">${U.escapeHtml(b.delivery_notes || "")}</textarea></div>
+        <div class="row" style="justify-content:flex-end">
+          <a class="btn btn-ghost" href="#config">${t("cfg.cancel")}</a>
+          <button class="btn btn-primary" id="saveDelivery">${t("cfg.save")}</button>
+        </div>
+      </div>
+      <div class="card" style="max-width:820px;background:var(--brand-050);border-color:var(--brand-500)">
+        <h3>💡 ${t("cfg.tipTitle")}</h3><p class="small">${t("cfg.deliveryTip")}</p>
+      </div>`;
+  }
+  function bindConfigDelivery() {
+    $("#saveDelivery").addEventListener("click", async () => {
+      const methods = $$(".dlvMethod:checked").map((c) => "[" + c.value + "]").join("");
+      await S.updateBusiness(state.business.id, {
+        delivery: methods,
+        delivery_fee: parseFloat($("#dlvFee").value || "0"),
+        delivery_time: $("#dlvTime").value.trim(),
+        delivery_notes: $("#dlvNotes").value.trim()
+      });
+      await loadBusiness(); toast(t("cfg.saved")); route();
+    });
+  }
+
+  /* ---- Formas de pago ---- */
+  function viewConfigPayments() {
+    const b = state.business;
+    const p = (b.payments || "");
+    const has = (k) => p.indexOf("[" + k + "]") >= 0;
+    const method = (k, ico, label) => `
+      <label class="opt-row"><input type="checkbox" class="payMethod" value="${k}" ${has(k) ? "checked" : ""}>
+        <span class="opt-ico">${ico}</span><span>${label}</span></label>`;
+    return configHead(t("cfg.payments"), t("cfg.paymentsSub")) + `
+      <div class="card mb-3" style="max-width:820px">
+        <div class="small muted" style="text-transform:uppercase;font-weight:700">${t("cfg.paymentMethods")}</div>
+        <h3>${t("cfg.paymentHow")}</h3><p class="small">${t("cfg.paymentHowSub")}</p>
+        <div class="opt-list">
+          ${method("cash", "💵", t("cfg.cash"))}
+          ${method("transfer", "🏦", t("cfg.bankTransfer"))}
+          ${method("card", "💳", t("cfg.cardOnDelivery"))}
+          ${method("online", "🌐", t("cfg.onlinePayment"))}
+          ${method("wallet", "📱", t("cfg.mobileWallet"))}
+        </div>
+        <div class="field mt-3"><label>${t("cfg.paymentNotes")}</label>
+          <textarea class="textarea" id="payNotes" placeholder="${t("cfg.paymentNotesPh")}">${U.escapeHtml(b.payment_notes || "")}</textarea></div>
+        <div class="row" style="justify-content:flex-end">
+          <a class="btn btn-ghost" href="#config">${t("cfg.cancel")}</a>
+          <button class="btn btn-primary" id="savePayments">${t("cfg.save")}</button>
+        </div>
+      </div>
+      <div class="card" style="max-width:820px;background:var(--brand-050);border-color:var(--brand-500)">
+        <h3>🔒 ${t("cfg.secureTitle")}</h3><p class="small">${t("cfg.paymentTip")}</p>
+      </div>`;
+  }
+  function bindConfigPayments() {
+    $("#savePayments").addEventListener("click", async () => {
+      const methods = $$(".payMethod:checked").map((c) => "[" + c.value + "]").join("");
+      await S.updateBusiness(state.business.id, {
+        payments: methods,
+        payment_notes: $("#payNotes").value.trim()
+      });
+      await loadBusiness(); toast(t("cfg.saved")); route();
+    });
+  }
+
+  /* ---- SEO y compartir ---- */
+  function viewConfigSeo() {
+    const b = state.business;
+    const title = b.seo_title || (b.name + " — " + (b.description || ""));
+    const desc = b.seo_description || b.description || "";
+    const url = U.catalogUrl(b.slug);
+    const img = b.seo_image || b.hero_image || b.logo_url || "";
+    return configHead(t("cfg.seo"), t("cfg.seoSub")) + `
+      <div class="grid" style="grid-template-columns:1.3fr 1fr;align-items:start;max-width:1000px">
+        <div class="card">
+          <div class="small muted" style="text-transform:uppercase;font-weight:700">${t("cfg.seoBasic")}</div>
+          <h3>${t("cfg.seoHint")}</h3>
+          <div class="field"><label>${t("cfg.seoTitle")}</label>
+            <input class="input" id="seoTitle" maxlength="60" value="${U.escapeHtml(b.seo_title || "")}" placeholder="${U.escapeHtml(b.name)}">
+            <div class="hint">${t("cfg.seoTitleHint")}</div></div>
+          <div class="field"><label>${t("cfg.seoDescription")}</label>
+            <textarea class="textarea" id="seoDesc" maxlength="160" placeholder="${U.escapeHtml(b.description || "")}">${U.escapeHtml(b.seo_description || "")}</textarea>
+            <div class="hint">${t("cfg.seoDescHint")}</div></div>
+          <div class="field"><label>${t("cfg.seoKeywords")}</label>
+            <input class="input" id="seoKeywords" value="${U.escapeHtml(b.seo_keywords || "")}" placeholder="${t("cfg.seoKeywordsPh")}"></div>
+          <div class="field"><label>${t("cfg.ogImage")}</label>
+            <div style="border-radius:12px;overflow:hidden;background:var(--brand-050);min-height:100px;display:grid;place-items:center" id="seoPreviewImg">
+              ${img ? `<img src="${U.escapeHtml(img)}" alt="" style="width:100%;max-height:200px;object-fit:cover">` : `<span class="muted small">${t("cfg.ogImage")}</span>`}
+            </div>
+            <div class="row wrap mt-2"><button class="btn btn-soft btn-sm" id="seoPick">${t("prod.fromLibrary")}</button>
+            <button class="btn btn-danger btn-sm" id="seoRm">${t("cfg.removeImage")}</button></div>
+          </div>
+          <div class="row" style="justify-content:flex-end">
+            <a class="btn btn-ghost" href="#config">${t("cfg.cancel")}</a>
+            <button class="btn btn-primary" id="saveSeo">${t("cfg.save")}</button>
+          </div>
+        </div>
+        <div>
+          <div class="card mb-3">
+            <div class="small muted" style="text-transform:uppercase;font-weight:700">${t("cfg.seoPreview")}</div>
+            <div style="border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:10px">
+              <div style="height:120px;background:var(--brand-050)" id="seoCardImg">${img ? `<img src="${U.escapeHtml(img)}" style="width:100%;height:120px;object-fit:cover">` : ""}</div>
+              <div style="padding:12px">
+                <div class="small muted">${U.escapeHtml((window.APP_CONFIG.publicDomain || location.host))}</div>
+                <strong id="seoCardTitle">${U.escapeHtml(title)}</strong>
+                <div class="small muted" id="seoCardDesc">${U.escapeHtml(desc)}</div>
+              </div>
+            </div>
+          </div>
+          <div class="card"><h3>🔍 ${t("cfg.seoAuto")}</h3><p class="small">${t("cfg.seoAutoSub")}</p>
+            <div class="small muted" style="word-break:break-all">${U.escapeHtml(url)}</div></div>
+        </div>
+      </div>`;
+  }
+  function bindConfigSeo() {
+    let img = state.business.seo_image || state.business.hero_image || state.business.logo_url || "";
+    const sync = () => {
+      $("#seoCardTitle").textContent = $("#seoTitle").value || state.business.name;
+      $("#seoCardDesc").textContent = $("#seoDesc").value || state.business.description || "";
+    };
+    $("#seoTitle").addEventListener("input", sync);
+    $("#seoDesc").addEventListener("input", sync);
+    $("#seoPick").addEventListener("click", () => pickImages({ onPick: (items) => {
+      if (!items.length) return;
+      img = items[0].url;
+      $("#seoPreviewImg").innerHTML = `<img src="${U.escapeHtml(img)}" style="width:100%;max-height:200px;object-fit:cover">`;
+      $("#seoCardImg").innerHTML = `<img src="${U.escapeHtml(img)}" style="width:100%;height:120px;object-fit:cover">`;
+    } }));
+    $("#seoRm").addEventListener("click", () => {
+      img = "";
+      $("#seoPreviewImg").innerHTML = `<span class="muted small">${t("cfg.ogImage")}</span>`;
+      $("#seoCardImg").innerHTML = "";
+    });
+    $("#saveSeo").addEventListener("click", async () => {
+      await S.updateBusiness(state.business.id, {
+        seo_title: $("#seoTitle").value.trim(),
+        seo_description: $("#seoDesc").value.trim(),
+        seo_keywords: $("#seoKeywords").value.trim(),
+        seo_image: img
+      });
+      await loadBusiness(); toast(t("cfg.saved")); route();
+    });
+  }
+
   /* ==================== ARRANQUE ==================== */
   async function loadBusiness() {
     state.business = await S.myBusiness();
@@ -857,9 +1051,14 @@
     if (!state.business) { location.href = "/login.html"; return; }
     ready = true;
 
+    const email = (user && user.email) || "";
     $("#sideBizName").textContent = state.business.name;
-    $("#topBizName").textContent = (window.APP_CONFIG.brandName || "Catalogo Wha");
-    $("#topUserName").textContent = state.business.name;
+    const sideEmail = $("#sideUserEmail");
+    if (sideEmail) sideEmail.textContent = email;
+    $("#topBizName").textContent = state.business.name;
+    $("#topUserName").textContent = email || state.business.name;
+    const av = $("#topAvatar");
+    if (av) av.textContent = (email.charAt(0) || "U").toUpperCase();
     const viewBtn = $("#viewCatalogBtn");
     viewBtn.href = U.catalogUrl(state.business.slug);
 

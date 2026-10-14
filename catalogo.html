@@ -3,8 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Catálogo — Catalogo Wha</title>
+<title data-i18n="meta.catalogTitle">Catálogo — Catalogo Wha</title>
+<meta name="description" data-i18n="meta.catalogDesc" content="Explora los productos y envía tu pedido por WhatsApp.">
+<meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="theme-color" content="#581a80">
+<link rel="canonical" href="/catalogo.html" data-base="/catalogo.html">
+<link rel="alternate" hreflang="es" href="/catalogo.html?lang=es">
+<link rel="alternate" hreflang="fr" href="/catalogo.html?lang=fr">
+<link rel="alternate" hreflang="ar" href="/catalogo.html?lang=ar">
+<link rel="alternate" hreflang="x-default" href="/catalogo.html?lang=es">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Catalogo Wha">
+<meta property="og:title" data-i18n="meta.catalogTitle" content="Catálogo — Catalogo Wha">
+<meta property="og:description" data-i18n="meta.catalogDesc" content="Explora los productos y envía tu pedido por WhatsApp.">
+<meta property="og:image" content="assets/img/og-image.png">
+<meta property="og:url" content="/catalogo.html">
+<meta property="og:locale" content="es_ES">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" data-i18n="meta.catalogTitle" content="Catálogo — Catalogo Wha">
+<meta name="twitter:description" data-i18n="meta.catalogDesc" content="Explora los productos y envía tu pedido por WhatsApp.">
+<meta name="twitter:image" content="assets/img/og-image.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/assets/img/icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/assets/css/styles.css">
@@ -59,6 +77,7 @@
 </div>
 
 <main class="container" id="productos" style="padding-top:26px;padding-bottom:80px">
+  <div id="catInfo" class="hidden" style="margin-bottom:26px"></div>
   <div id="catalogBody"><div class="empty"><div class="ico">⏳</div><p data-i18n="common.loading">Cargando…</p></div></div>
 </main>
 

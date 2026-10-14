@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Sitemap de Catalogo Wha.
+  ⚠️ Reemplaza TU-DOMINIO por tu dominio real (ej. catalogo-wha.vercel.app)
+  y añade una entrada <url> por cada catálogo público que quieras indexar.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <url>
+    <loc>https://TU-DOMINIO/index.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://TU-DOMINIO/index.html?lang=es"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://TU-DOMINIO/index.html?lang=fr"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://TU-DOMINIO/index.html?lang=ar"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://TU-DOMINIO/index.html?lang=es"/>
+  </url>
+
+  <url>
+    <loc>https://TU-DOMINIO/catalogo.html?b=demo</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+</urlset>
