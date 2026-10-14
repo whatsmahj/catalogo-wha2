@@ -218,9 +218,12 @@ create trigger on_auth_user_created
 -- ------------------------------------------------------------
 -- 8) STORAGE: bucket público para imágenes del catálogo
 -- ------------------------------------------------------------
-insert into storage.buckets (id, name, public)
-values ('catalog-images', 'catalog-images', true)
-on conflict (id) do nothing;
+-- Crea el bucket y, si ya existía como privado, lo vuelve PÚBLICO.
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('catalog-images', 'catalog-images', true, 10485760)
+on conflict (id) do update
+  set public = true,
+      file_size_limit = 10485760;
 
 drop policy if exists "catalog_images_read" on storage.objects;
 create policy "catalog_images_read" on storage.objects
@@ -254,7 +257,7 @@ create policy "catalog_images_delete" on storage.objects
 
 
 -- ===========================================================
--- 9) ADMINISTRACIÓN (super admin)
+-- 10) ADMINISTRACIÓN (super admin)
 -- -----------------------------------------------------------
 -- Un administrador puede ver y gestionar TODAS las cuentas.
 -- La seguridad real está AQUÍ (RLS), nunca en el frontend.
@@ -359,4 +362,95 @@ $$;
 --
 -- Comprueba que quedó bien:
 --   select * from public.admins;
+-- ===========================================================
+
+
+-- ===========================================================
+-- 11) MÉTRICAS DEL PANEL DE ADMINISTRACIÓN
+-- -----------------------------------------------------------
+-- Contador de visitas + consultas agregadas para el panel.
+-- Todas las consultas comprueban public.is_admin() para que
+-- NADIE que no sea admin pueda leer datos de otras cuentas.
+-- ===========================================================
+
+-- 11.1 Contador de visitas por producto
+alter table public.products add column if not exists views integer not null default 0;
+
+-- 11.2 Registrar una visita (lo llama el catálogo público, sin sesión)
+create or replace function public.track_product_view(pid uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.products
+     set views = coalesce(views, 0) + 1
+   where id = pid;
+end;
+$$;
+
+grant execute on function public.track_product_view(uuid) to anon, authenticated;
+
+-- 11.3 Altas por mes (últimos 12 meses)
+create or replace function public.admin_signups_by_month()
+returns table(month text, total bigint)
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select to_char(date_trunc('month', b.created_at), 'YYYY-MM') as month,
+         count(*)::bigint as total
+    from public.businesses b
+   where public.is_admin()
+     and b.created_at >= date_trunc('month', now()) - interval '11 months'
+   group by 1
+   order by 1;
+$$;
+
+grant execute on function public.admin_signups_by_month() to authenticated;
+
+-- 11.4 Productos más vistos
+create or replace function public.admin_top_products(lim int default 10)
+returns table(id uuid, name text, views bigint, price numeric,
+              business_name text, business_slug text)
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select p.id, p.name, coalesce(p.views, 0)::bigint, p.price, b.name, b.slug
+    from public.products p
+    join public.businesses b on b.id = p.business_id
+   where public.is_admin()
+   order by coalesce(p.views, 0) desc, p.created_at desc
+   limit greatest(1, least(coalesce(lim, 10), 50));
+$$;
+
+grant execute on function public.admin_top_products(int) to authenticated;
+
+-- 11.5 Cuentas con más pedidos
+create or replace function public.admin_business_ranking()
+returns table(business_id uuid, name text, slug text, orders bigint, revenue numeric)
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select b.id, b.name, b.slug,
+         count(o.id)::bigint,
+         coalesce(sum(o.total), 0)::numeric
+    from public.businesses b
+    left join public.orders o on o.business_id = b.id
+   where public.is_admin()
+   group by b.id, b.name, b.slug
+   order by count(o.id) desc, coalesce(sum(o.total), 0) desc
+   limit 50;
+$$;
+
+grant execute on function public.admin_business_ranking() to authenticated;
+
+-- Comprobación rápida (debe devolver datos solo si eres admin):
+--   select public.is_admin();
 -- ===========================================================

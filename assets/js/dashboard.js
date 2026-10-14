@@ -147,6 +147,9 @@
         case "admin":
           if (!state.isAdmin) { view.innerHTML = `<div class="alert alert-error">${t("adm.notAllowed")}</div>`; break; }
           view.innerHTML = viewAdmin(); bindAdmin(); break;
+        case "admin-metrics":
+          if (!state.isAdmin) { view.innerHTML = `<div class="alert alert-error">${t("adm.notAllowed")}</div>`; break; }
+          view.innerHTML = viewAdminMetrics(); bindAdminMetrics(); break;
         default: view.innerHTML = viewHome(); bindHome();
       }
     } catch (e) { console.error(e); view.innerHTML = `<div class="alert alert-error">${U.escapeHtml(e.message || t("common.error"))}</div>`; }
@@ -589,6 +592,9 @@
         <div class="small muted">${t("lib.uploadHint")}</div>
         <input type="file" id="libInput" accept="image/*" multiple hidden>
       </div>
+      <div class="row mb-3" style="justify-content:flex-end">
+        <button class="btn btn-soft btn-sm" id="libDiag">🔍 ${t("lib.diag")}</button>
+      </div>
       <div id="libGridWrap">${libraryGrid()}</div>`;
   }
   function libraryGrid() {
@@ -606,15 +612,51 @@
     up.addEventListener("click", () => input.click());
     ["dragover", "dragenter"].forEach((ev) => up.addEventListener(ev, (e) => { e.preventDefault(); up.classList.add("drag"); }));
     ["dragleave", "drop"].forEach((ev) => up.addEventListener(ev, (e) => { e.preventDefault(); up.classList.remove("drag"); }));
+    const dg = $("#libDiag");
+    if (dg) dg.addEventListener("click", runLibraryDiagnostic);
     up.addEventListener("drop", async (e) => {
-      for (const f of Array.from(e.dataTransfer.files || [])) { try { await S.uploadImage(state.business.id, f); } catch (err) { toast(t("common.error"), "error"); } }
+      for (const f of Array.from(e.dataTransfer.files || [])) { try { await S.uploadImage(state.business.id, f); } catch (err) { toast(uploadMsg(err), "error"); } }
       state.library = await S.listLibrary(state.business.id); $("#libGridWrap").innerHTML = libraryGrid(); bindLibDelete();
     });
     input.addEventListener("change", async (e) => {
-      for (const f of Array.from(e.target.files || [])) { try { await S.uploadImage(state.business.id, f); } catch (err) { toast(t("common.error"), "error"); } }
+      for (const f of Array.from(e.target.files || [])) { try { await S.uploadImage(state.business.id, f); } catch (err) { toast(uploadMsg(err), "error"); } }
       state.library = await S.listLibrary(state.business.id); $("#libGridWrap").innerHTML = libraryGrid(); bindLibDelete();
     });
     bindLibDelete();
+  }
+
+  /* Traduce el error crudo de Supabase a un mensaje útil. */
+  function uploadMsg(err) {
+    const raw = String((err && (err.message || err.error_description || err.error)) || err || "");
+    const low = raw.toLowerCase();
+    if (low.includes("bucket not found") || low.includes("not found")) return t("lib.errBucket");
+    if (low.includes("row-level security") || low.includes("unauthorized") || low.includes("403")) return t("lib.errRls");
+    if (low.includes("too large") || low.includes("exceeded") || low.includes("413")) return t("lib.errSize");
+    if (low.includes("mime") || low.includes("content type")) return t("lib.errMime");
+    if (low.includes("jwt") || low.includes("token") || low.includes("401")) return t("lib.errAuth");
+    return raw || t("common.error");
+  }
+
+  /* Diagnóstico paso a paso: dice EXACTAMENTE qué falla. */
+  async function runLibraryDiagnostic() {
+    openModal(t("lib.diagTitle"), `<p class="muted">${t("adm.loading")}</p>`);
+    let rows = [];
+    try { rows = await S.diagnose(); }
+    catch (e) { rows = [{ ok: false, label: "Diagnóstico", detail: (e && e.message) || String(e) }]; }
+    const bad = rows.filter((r) => !r.ok).length;
+    $("#modalBody").innerHTML = `
+      <p class="small muted">${t("lib.diagSub")}</p>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th></th><th>${t("adm.detail")}</th><th>${t("lib.diagOk")}</th></tr></thead>
+        <tbody>${rows.map((r) => `
+          <tr>
+            <td>${r.ok ? "✅" : "❌"}</td>
+            <td><strong>${U.escapeHtml(r.label)}</strong><div class="small muted" style="word-break:break-word">${U.escapeHtml(r.detail)}</div></td>
+            <td class="small">${r.ok ? t("lib.diagOk") : t("lib.diagFail")}</td>
+          </tr>`).join("")}</tbody>
+      </table></div>
+      <div class="mt-3">${bad ? `<span class="badge off">${t("lib.diagFix")}</span>` : `<span class="badge ok">✓ ${t("lib.diagOk")}</span>`}</div>
+      <div class="row mt-3" style="justify-content:flex-end"><button class="btn btn-ghost" data-close>${t("common.cancel")}</button></div>`;
   }
   function bindLibDelete() {
     $$("[data-delimg]").forEach((b) => b.addEventListener("click", async () => {
@@ -1596,6 +1638,120 @@
     });
   }
 
+  /* ==================== VISTA: MÉTRICAS (admin) ==================== */
+  function viewAdminMetrics() {
+    return `
+      <div class="page-head">
+        <span class="badge info">★ ${t("adm.badge")}</span>
+        <h1 class="mt-1">${t("adm.metrics")}</h1>
+        <p>${t("adm.metricsSub")}</p>
+        <div class="row wrap mt-2"><a class="btn btn-ghost btn-sm" href="#admin">‹ ${t("adm.title")}</a></div>
+      </div>
+      <div id="admMetrics"><div class="card muted">${t("adm.loading")}</div></div>`;
+  }
+  function bindAdminMetrics() { loadAdminMetrics(); }
+
+  async function loadAdminMetrics() {
+    const box = $("#admMetrics");
+    if (!box) return;
+    try {
+      box.innerHTML = renderAdminMetrics(await S.adminMetrics());
+    } catch (e) {
+      box.innerHTML = `<div class="alert alert-error">${U.escapeHtml((e && e.message) || t("common.error"))}</div>`;
+    }
+  }
+
+  /* Gráfico de barras en SVG puro (sin librerías externas). */
+  function barChart(rows) {
+    const w = 760, h = 240, padL = 36, padR = 12, padT = 18, padB = 34;
+    const n = rows.length || 1;
+    const max = Math.max(1, ...rows.map((r) => r.total));
+    const step = Math.max(1, Math.ceil(max / 4));
+    const top = Math.max(step, Math.ceil(max / step) * step);
+    const innerW = w - padL - padR, innerH = h - padT - padB;
+    const gap = 10;
+    const bw = Math.max(6, (innerW - gap * (n - 1)) / n);
+    let svg = "";
+    for (let v = 0; v <= top; v += step) {
+      const y = padT + innerH - (v / top) * innerH;
+      svg += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${w - padR}" y2="${y.toFixed(1)}" style="stroke:#ece9f3;stroke-width:1"/>`;
+      svg += `<text x="${padL - 8}" y="${(y + 4).toFixed(1)}" text-anchor="end" style="font-size:10px;fill:#6b6580">${v}</text>`;
+    }
+    rows.forEach((r, i) => {
+      const bh = (r.total / top) * innerH;
+      const x = padL + i * (bw + gap);
+      const y = padT + innerH - bh;
+      const cx = x + bw / 2;
+      svg += `<g><title>${r.month}: ${r.total}</title>`
+        + `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(bh, r.total ? 3 : 0).toFixed(1)}" rx="4" style="fill:#7c3aed"/>`
+        + `<text x="${cx.toFixed(1)}" y="${h - 16}" text-anchor="middle" style="font-size:10px;fill:#6b6580">${r.month.slice(5)}</text>`
+        + `<text x="${cx.toFixed(1)}" y="${h - 4}" text-anchor="middle" style="font-size:9px;fill:#a29db5">${r.month.slice(2, 4)}</text>`
+        + `</g>`;
+    });
+    return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="max-width:100%;height:auto;display:block" role="img" aria-label="${U.escapeHtml(t("adm.signups"))}">${svg}</svg>`;
+  }
+
+  function renderAdminMetrics(m) {
+    const signups = m.signups || [];
+    const total = signups.reduce((a, r) => a + r.total, 0);
+    const best = signups.reduce((a, r) => (r.total > (a ? a.total : -1) ? r : a), null);
+    const avg = signups.length ? total / signups.length : 0;
+    const cur = (state.business && state.business.currency) || window.APP_CONFIG.defaultCurrency;
+    const tile = (v, l) => `<div class="card"><div class="small muted" style="text-transform:uppercase;font-weight:700">${l}</div><h2 style="margin:4px 0 0">${v}</h2></div>`;
+
+    const prodRows = (m.topProducts || []).map((p, i) => `
+      <tr>
+        <td class="muted">${i + 1}</td>
+        <td><strong>${U.escapeHtml(p.name)}</strong><div class="small muted">${U.escapeHtml(p.business_name || "")}</div></td>
+        <td class="small muted">${U.currency(p.price, cur)}</td>
+        <td><strong>${p.views}</strong></td>
+      </tr>`).join("");
+
+    const rankRows = (m.ranking || []).map((b, i) => `
+      <tr>
+        <td class="muted">${i + 1}</td>
+        <td><strong>${U.escapeHtml(b.name)}</strong><div class="small muted">${U.escapeHtml(b.slug || "")}</div></td>
+        <td><strong>${b.orders}</strong></td>
+        <td class="small">${U.currency(b.revenue, cur)}</td>
+        <td><a class="small" href="${U.escapeHtml(U.catalogUrl(b.slug || ""))}" target="_blank" rel="noopener">${t("adm.openCatalog")} ↗</a></td>
+      </tr>`).join("");
+
+    return `
+      <div class="grid cols-3 mb-3">
+        ${tile(total, t("adm.totalSignups"))}
+        ${tile(best && best.total ? best.month + " · " + best.total : "—", t("adm.bestMonth"))}
+        ${tile(avg.toFixed(1), t("adm.avgMonth"))}
+      </div>
+
+      <div class="card mb-3">
+        <div class="small muted" style="text-transform:uppercase;font-weight:700">${t("adm.signups")}</div>
+        <h3>${t("adm.signups")}</h3>
+        <p class="small">${t("adm.signupsSub")}</p>
+        <div class="mt-2">${barChart(signups)}</div>
+      </div>
+
+      <div class="grid cols-2" style="gap:20px;align-items:start">
+        <div class="card">
+          <div class="small muted" style="text-transform:uppercase;font-weight:700">${t("adm.topProducts")}</div>
+          <h3>${t("adm.topProducts")}</h3>
+          <p class="small">${t("adm.topProductsSub")}</p>
+          <div style="overflow-x:auto"><table>
+            <thead><tr><th>#</th><th>${t("adm.products")}</th><th>${t("adm.price")}</th><th>${t("adm.views")}</th></tr></thead>
+            <tbody>${prodRows || `<tr><td colspan="4" class="muted">${t("adm.noData")}</td></tr>`}</tbody>
+          </table></div>
+        </div>
+        <div class="card">
+          <div class="small muted" style="text-transform:uppercase;font-weight:700">${t("adm.ranking")}</div>
+          <h3>${t("adm.ranking")}</h3>
+          <p class="small">${t("adm.rankingSub")}</p>
+          <div style="overflow-x:auto"><table>
+            <thead><tr><th>#</th><th>${t("adm.account")}</th><th>${t("adm.orders")}</th><th>${t("adm.revenue")}</th><th></th></tr></thead>
+            <tbody>${rankRows || `<tr><td colspan="5" class="muted">${t("adm.noData")}</td></tr>`}</tbody>
+          </table></div>
+        </div>
+      </div>`;
+  }
+
   /* ==================== ARRANQUE ==================== */
   async function loadBusiness() {
     state.business = await S.myBusiness();
@@ -1610,9 +1766,10 @@
     try { state.meta = (await S.userMeta()) || {}; } catch (e) { state.meta = {}; }
     try { state.isAdmin = await S.isAdmin(); } catch (e) { state.isAdmin = false; }
     if (state.isAdmin) {
-      const ag = $("#adminGroup"), al = $("#adminLink");
+      const ag = $("#adminGroup"), al = $("#adminLink"), am = $("#adminMetricsLink");
       if (ag) ag.classList.remove("hidden");
       if (al) al.classList.remove("hidden");
+      if (am) am.classList.remove("hidden");
     }
     ready = true;
 

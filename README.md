@@ -171,13 +171,15 @@ automáticamente).
 
 El panel de administración permite ver y gestionar **todas** las cuentas:
 listado con propietario, enlace, número de productos / categorías / pedidos /
-imágenes, buscador, detalle de cada cuenta y eliminación.
+imágenes, buscador, detalle de cada cuenta y eliminación. Incluye además una
+pestaña de **Métricas**: gráfico de altas por mes, productos más vistos y
+ranking de cuentas con más pedidos.
 
 ### Con Supabase (recomendado)
 
-1. Ejecuta de nuevo `supabase/schema.sql` (la sección **9) ADMINISTRACIÓN**).
-   Crea la tabla `public.admins`, la función `public.is_admin()` y las políticas
-   RLS que dan acceso global **solo** a los administradores.
+1. Ejecuta de nuevo `supabase/schema.sql` completo. Crea la tabla
+   `public.admins` (**sección 10**), la función `public.is_admin()`, las
+   políticas RLS de acceso global y las métricas (**sección 11**).
 2. Regístrate primero en la web con **tu** correo (así existes en `auth.users`).
 3. En el **SQL Editor** de Supabase ejecuta, cambiando el correo por el tuyo:
 
@@ -190,6 +192,53 @@ imágenes, buscador, detalle de cada cuenta y eliminación.
 4. Recarga el panel: aparecerá la sección **★ Administración** en el menú.
 
 Para añadir o quitar administradores, inserta o borra filas de `public.admins`.
+
+> Si el menú **no** aparece, entra en **Biblioteca → 🔍 Diagnóstico**: te dice
+exactamente qué falta (tablas, bucket, función `is_admin()`…).
+
+---
+
+## 🖼️ Las imágenes no se suben (solución)
+
+La biblioteca necesita el **bucket de Storage** y sus permisos. Si algo falta, la
+app ahora muestra el error real y el **🔍 Diagnóstico** de la biblioteca te dice
+qué paso falla. Para arreglarlo, ejecuta este bloque en el **SQL Editor**:
+
+```sql
+-- 1) Bucket público (lo crea o lo vuelve público si ya existía privado)
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('catalog-images', 'catalog-images', true, 10485760)
+on conflict (id) do update set public = true, file_size_limit = 10485760;
+
+-- 2) Permisos sobre las imágenes
+drop policy if exists "catalog_images_read" on storage.objects;
+create policy "catalog_images_read" on storage.objects
+  for select using (bucket_id = 'catalog-images');
+
+drop policy if exists "catalog_images_insert" on storage.objects;
+create policy "catalog_images_insert" on storage.objects
+  for insert to authenticated with check (bucket_id = 'catalog-images');
+
+drop policy if exists "catalog_images_update" on storage.objects;
+create policy "catalog_images_update" on storage.objects
+  for update to authenticated using (bucket_id = 'catalog-images');
+
+drop policy if exists "catalog_images_delete" on storage.objects;
+create policy "catalog_images_delete" on storage.objects
+  for delete to authenticated using (bucket_id = 'catalog-images');
+
+-- 3) Contador de visitas para las métricas
+alter table public.products add column if not exists views integer not null default 0;
+```
+
+Causas más frecuentes:
+
+| Mensaje | Causa | Solución |
+|---|---|---|
+| `Bucket not found` | El bucket `catalog-images` no existe | Ejecuta el bloque de arriba |
+| `new row violates row-level security policy` | Faltan las políticas de Storage | Ejecuta el bloque de arriba |
+| `The resource already exists` | Archivo duplicado | No pasa: cada subida usa un nombre único |
+| La imagen sube pero no se ve | El bucket es privado | El bloque de arriba lo pone público |
 
 ### En modo demo (sin Supabase)
 

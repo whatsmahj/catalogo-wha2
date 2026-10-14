@@ -176,7 +176,7 @@
       const cat = categories.find((c) => c.id === p.category_id);
       const img = (p.images && p.images[0]) || "";
       const price = p.promo_price || p.price;
-      return `<article class="product-card">
+      return `<article class="product-card" data-pid="${p.id}">
         ${img ? `<img class="ph" src="${U.escapeHtml(img)}" alt="${U.escapeHtml(p.name)}">` : `<div class="ph"></div>`}
         <div class="body">
           ${cat ? `<div class="cat">${U.escapeHtml(cat.name)}</div>` : ""}
@@ -194,6 +194,31 @@
       b.textContent = "✓ " + t("catalog.addToCart");
       setTimeout(() => { b.textContent = "+ " + t("catalog.addToCart"); }, 900);
     }));
+
+    trackViews();
+  }
+
+  /* Registra una visita por producto y sesión ("productos más vistos"). */
+  const SEEN_KEY = "cw_seen_views_v1";
+  function seenViews() { try { return JSON.parse(localStorage.getItem(SEEN_KEY)) || {}; } catch (e) { return {}; } }
+  function trackViews() {
+    if (!("IntersectionObserver" in window) || !window.CW.store || !window.CW.store.trackProductView) return;
+    const seen = seenViews();
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        const el = en.target;
+        const id = el.getAttribute("data-pid");
+        io.unobserve(el);
+        if (!id || seen[id]) return;
+        seen[id] = 1;
+        const keys = Object.keys(seen);
+        if (keys.length > 500) delete seen[keys[0]];
+        try { localStorage.setItem(SEEN_KEY, JSON.stringify(seen)); } catch (e) { /* sin espacio */ }
+        window.CW.store.trackProductView(id);
+      });
+    }, { threshold: 0.5 });
+    $$("[data-pid]").forEach((el) => io.observe(el));
   }
 
   /* ---------- Carrito ---------- */

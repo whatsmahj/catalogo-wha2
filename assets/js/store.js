@@ -60,8 +60,60 @@
       orders: [],
       library: []
     };
+    addDemoAccounts(db);
     saveDb(db);
     return db;
+  }
+
+  /* Cuentas de ejemplo para que el panel de administración tenga datos
+     que mostrar en MODO DEMO. No se usan nunca con Supabase. */
+  function addDemoAccounts(d) {
+    const preset = [
+      ["Boutique Nour", "boutique-nour", 8, 6, 14, 260],
+      ["Restaurante Al Andalous", "restaurante-al-andalous", 7, 5, 21, 190],
+      ["Ferretería Yasmina", "ferreteria-yasmina", 6, 8, 9, 120],
+      ["Peluquería Glam", "peluqueria-glam", 5, 4, 16, 95],
+      ["Panadería Bab Souika", "panaderia-bab-souika", 4, 7, 11, 160],
+      ["Tienda Mascotas Amigo", "mascotas-amigo", 3, 5, 6, 70],
+      ["Óptica Visión Clara", "optica-vision-clara", 2, 4, 4, 48],
+      ["Moda Zahra", "moda-zahra", 1, 6, 7, 110]
+    ];
+    preset.forEach(([name, slug, monthsAgo, nProd, nOrders, baseViews], n) => {
+      const id = "biz_demo_" + slug;
+      const created = new Date();
+      created.setMonth(created.getMonth() - monthsAgo);
+      created.setDate(Math.min(22, 4 + n * 2));
+      const iso = created.toISOString();
+      d.businesses.push({
+        id, owner_id: "demo_" + slug, owner_email: slug.replace(/-/g, ".") + "@ejemplo.com",
+        name, slug, description: "", whatsapp: window.APP_CONFIG.supportWhatsApp,
+        country: "Marruecos", currency: window.APP_CONFIG.defaultCurrency,
+        timezone: "Africa/Casablanca", brand_color: window.APP_CONFIG.defaultBrandColor,
+        logo_url: "", hero_enabled: false, hero_title: "", hero_desc: "", hero_image: "",
+        delivery: "", payments: "", published: true, created_at: iso
+      });
+      const cid = "cat_demo_" + slug;
+      d.categories.push({ id: cid, business_id: id, name: "General", slug: "general", sort_order: 0, image_url: "", alt: "" });
+      for (let i = 0; i < nProd; i++) {
+        d.products.push({
+          id: "prod_demo_" + slug + "_" + i, business_id: id, category_id: cid,
+          name: "Producto " + (i + 1), slug: "producto-" + (i + 1), description: "",
+          price: 40 + i * 15, promo_price: null, sort_order: i, active: true, images: [],
+          views: Math.max(2, Math.round(baseViews * (1 - i * 0.13))), created_at: iso
+        });
+      }
+      for (let i = 0; i < nOrders; i++) {
+        const od = new Date(created);
+        od.setDate(od.getDate() + i * 3 + 1);
+        const qty = 1 + (i % 3);
+        d.orders.push({
+          id: "ord_demo_" + slug + "_" + i, business_id: id,
+          code: "PED-" + slug.slice(0, 3).toUpperCase() + "-" + (100 + i),
+          customer_name: "Cliente " + (i + 1), note: "", items: [],
+          total: 40 * qty, status: i % 4 === 0 ? "new" : "done", created_at: od.toISOString()
+        });
+      }
+    });
   }
 
   function db() {
@@ -524,6 +576,122 @@
     return deleteBusinessData(id);
   }
 
+  /* ---------- MÉTRICAS ---------- */
+  async function trackProductView(id) {
+    if (!id) return;
+    try {
+      if (isDemo()) {
+        const d = db();
+        const p = d.products.find((x) => x.id === id);
+        if (p) { p.views = (p.views || 0) + 1; saveDb(d); }
+        return;
+      }
+      init();
+      await sb.rpc("track_product_view", { pid: id });
+    } catch (e) { /* una visita nunca debe romper el catálogo */ }
+  }
+
+  function lastMonths(n) {
+    const out = [];
+    const now = new Date();
+    for (let i = n - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      out.push(d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"));
+    }
+    return out;
+  }
+
+  async function adminMetrics() {
+    init();
+    const months = lastMonths(12);
+    if (isDemo()) {
+      const d = db();
+      const byMonth = {};
+      months.forEach((m) => (byMonth[m] = 0));
+      d.businesses.forEach((b) => {
+        const k = String(b.created_at || "").slice(0, 7);
+        if (k in byMonth) byMonth[k]++;
+      });
+      return {
+        signups: months.map((m) => ({ month: m, total: byMonth[m] })),
+        topProducts: d.products.map((p) => {
+          const b = d.businesses.find((x) => x.id === p.business_id) || {};
+          return { id: p.id, name: p.name, views: p.views || 0, price: p.price,
+                   business_name: b.name || "", business_slug: b.slug || "" };
+        }).sort((a, b) => b.views - a.views).slice(0, 10),
+        ranking: d.businesses.map((b) => {
+          const os = d.orders.filter((o) => o.business_id === b.id);
+          return { business_id: b.id, name: b.name, slug: b.slug, orders: os.length,
+                   revenue: os.reduce((s, o) => s + (Number(o.total) || 0), 0) };
+        }).sort((a, b) => b.orders - a.orders || b.revenue - a.revenue)
+      };
+    }
+    const [s, p, r] = await Promise.all([
+      sb.rpc("admin_signups_by_month"),
+      sb.rpc("admin_top_products", { lim: 10 }),
+      sb.rpc("admin_business_ranking")
+    ]);
+    if (s.error) throw s.error;
+    const map = {};
+    (s.data || []).forEach((row) => (map[row.month] = Number(row.total) || 0));
+    return {
+      signups: months.map((m) => ({ month: m, total: map[m] || 0 })),
+      topProducts: (p.error ? [] : (p.data || [])).map((x) => ({ ...x, views: Number(x.views) || 0 })),
+      ranking: (r.error ? [] : (r.data || [])).map((x) => ({ ...x, orders: Number(x.orders) || 0, revenue: Number(x.revenue) || 0 }))
+    };
+  }
+
+  /* ---------- DIAGNÓSTICO ---------- */
+  async function diagnose() {
+    const out = [];
+    const add = (ok, label, detail) => out.push({ ok: !!ok, label, detail: detail == null ? "" : String(detail) });
+    if (!CW.isConfigured()) {
+      add(true, "Modo demo", "Supabase no está configurado: las imágenes se guardan en el navegador y todo funciona igual.");
+      return out;
+    }
+    add(true, "Supabase configurado", String(window.APP_CONFIG.supabaseUrl).replace(/^https?:\/\//, ""));
+    init();
+    try {
+      const { data, error } = await sb.auth.getUser();
+      add(!error && data && data.user, "Sesión iniciada",
+        error ? error.message : (data && data.user ? data.user.email : "Sin sesión"));
+    } catch (e) { add(false, "Sesión iniciada", e.message); }
+
+    for (const tb of ["businesses", "categories", "products", "orders", "library", "admins"]) {
+      try {
+        const { error } = await sb.from(tb).select("*").limit(1);
+        add(!error, "Tabla " + tb, error ? error.message : "OK");
+      } catch (e) { add(false, "Tabla " + tb, e.message); }
+    }
+
+    try {
+      const { data, error } = await sb.storage.from(BUCKET).list("", { limit: 1 });
+      add(!error, "Bucket «" + BUCKET + "»",
+        error ? error.message : "OK (" + ((data && data.length) || 0) + " archivo(s) visibles)");
+    } catch (e) { add(false, "Bucket «" + BUCKET + "»", e.message); }
+
+    try {
+      const blob = new Blob([new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10])], { type: "image/png" });
+      const path = "_diagnostico/" + Date.now() + ".png";
+      const { error } = await sb.storage.from(BUCKET).upload(path, blob, { upsert: true, contentType: "image/png" });
+      if (error) throw error;
+      await sb.storage.from(BUCKET).remove([path]);
+      add(true, "Prueba real de subida", "OK");
+    } catch (e) { add(false, "Prueba real de subida", (e && e.message) || String(e)); }
+
+    try {
+      const { error } = await sb.from("products").select("views").limit(1);
+      add(!error, "Columna products.views (métricas)", error ? error.message : "OK");
+    } catch (e) { add(false, "Columna products.views (métricas)", e.message); }
+
+    try {
+      const { data, error } = await sb.rpc("is_admin");
+      add(!error, "Función is_admin()", error ? error.message : "Devuelve: " + String(data));
+    } catch (e) { add(false, "Función is_admin()", e.message); }
+
+    return out;
+  }
+
   window.CW.store = {
     init, isDemo, uid, slugify,
     signUp, signIn, signOut, currentUser,
@@ -534,6 +702,7 @@
     listProducts, saveProduct, deleteProduct,
     listOrders, createOrder, updateOrderStatus,
     listLibrary, uploadImage, deleteImage, fileToDataUrl,
-    isAdmin, adminOverview, adminBusinessDetail, adminDeleteBusiness
+    isAdmin, adminOverview, adminBusinessDetail, adminDeleteBusiness,
+    trackProductView, adminMetrics, diagnose
   };
 })();
