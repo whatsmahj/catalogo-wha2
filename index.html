@@ -5,73 +5,172 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title data-i18n="meta.title">Catalogo Wha — Crea tu catálogo online y recibe pedidos por WhatsApp</title>
 <meta name="description" data-i18n="meta.desc" content="Catálogos online para negocios que quieren mostrar productos, recibir pedidos y continuar la venta por WhatsApp.">
-<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <meta name="author" content="Catalogo Wha">
 <meta name="theme-color" content="#581a80">
+<meta name="color-scheme" content="light">
 <meta name="keywords" content="catálogo online, catálogo WhatsApp, catálogo digital, pedidos por WhatsApp, tienda online, catalogue WhatsApp, catalogue en ligne, كتالوج واتساب">
 
-<!-- SEO multiidioma: enlaces alternativos por idioma -->
+<!-- ===== SEO multiidioma ===== -->
 <link rel="canonical" href="/index.html" data-base="/index.html">
 <link rel="alternate" hreflang="es" href="/index.html?lang=es">
 <link rel="alternate" hreflang="fr" href="/index.html?lang=fr">
 <link rel="alternate" hreflang="ar" href="/index.html?lang=ar">
 <link rel="alternate" hreflang="x-default" href="/index.html?lang=es">
 
-<!-- Open Graph / redes sociales -->
+<!-- ===== Open Graph / Twitter ===== -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Catalogo Wha">
 <meta property="og:title" data-i18n="meta.title" content="Catalogo Wha — Crea tu catálogo online y recibe pedidos por WhatsApp">
 <meta property="og:description" data-i18n="meta.desc" content="Catálogos online para negocios que quieren mostrar productos, recibir pedidos y continuar la venta por WhatsApp.">
 <meta property="og:image" content="assets/img/og-image.png">
+<meta property="og:image:alt" data-i18n="hero.imgAlt" content="Catálogo de productos en un móvil con pedido por WhatsApp">
 <meta property="og:image:width" content="1536">
 <meta property="og:image:height" content="1024">
 <meta property="og:locale" content="es_ES">
 <meta property="og:locale:alternate" content="fr_FR">
 <meta property="og:locale:alternate" content="ar_MA">
-
-<!-- Twitter / X -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" data-i18n="meta.title" content="Catalogo Wha — Crea tu catálogo online y recibe pedidos por WhatsApp">
 <meta name="twitter:description" data-i18n="meta.desc" content="Catálogos online para negocios que quieren mostrar productos, recibir pedidos y continuar la venta por WhatsApp.">
 <meta name="twitter:image" content="assets/img/og-image.png">
 
-<!-- Datos estructurados (rich results de Google) -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "Catalogo Wha",
-  "applicationCategory": "BusinessApplication",
-  "operatingSystem": "Web, Android, iOS",
-  "description": "Crea tu catálogo online, comparte un enlace y recibe pedidos por WhatsApp.",
-  "inLanguage": ["es", "fr", "ar"],
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Catalogo Wha",
-    "email": "contact@clickpubli.com",
-    "telephone": "+212690157092"
-  },
-  "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "128" }
-}
-</script>
+<!-- ===== Rendimiento: conexiones y precarga del recurso crítico ===== -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<link rel="preload" as="image" href="/assets/img/hero-catalog.png" fetchpriority="high">
+<link rel="preload" as="style" href="/assets/css/styles.css">
 
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/assets/img/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/img/icon-192.png">
 <link rel="stylesheet" href="/assets/css/styles.css">
+
+<!-- ===== Datos estructurados ===== -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "#organization",
+      "name": "Catalogo Wha",
+      "url": "/index.html",
+      "logo": "/assets/img/icon-512.png",
+      "email": "contact@clickpubli.com",
+      "telephone": "+212690157092",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+212690157092",
+        "contactType": "customer support",
+        "email": "contact@clickpubli.com",
+        "availableLanguage": ["es", "fr", "ar"]
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "#website",
+      "name": "Catalogo Wha",
+      "url": "/index.html",
+      "inLanguage": ["es", "fr", "ar"],
+      "publisher": { "@id": "#organization" }
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Catalogo Wha",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web, Android, iOS",
+      "description": "Crea tu catálogo online, comparte un enlace y recibe pedidos por WhatsApp.",
+      "inLanguage": ["es", "fr", "ar"],
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "128" },
+      "publisher": { "@id": "#organization" }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "¿Necesito una tienda online completa?", "acceptedAnswer": { "@type": "Answer", "text": "No. Catalogo Wha es un catálogo para mostrar productos y recibir pedidos por WhatsApp. No necesitas pasarela de pago ni dominio propio." } },
+        { "@type": "Question", "name": "¿Mis clientes deben registrarse para pedir?", "acceptedAnswer": { "@type": "Answer", "text": "No. Tus clientes abren el enlace, eligen productos y envían el pedido por WhatsApp sin crear cuenta." } },
+        { "@type": "Question", "name": "¿Puedo usar mi propio número de WhatsApp?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. Configura el número de tu negocio en el panel y todos los pedidos llegarán ahí." } },
+        { "@type": "Question", "name": "¿Puedo cambiar el enlace de mi catálogo?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. Puedes personalizar el nombre del enlace (subdominio) desde la configuración del negocio." } },
+        { "@type": "Question", "name": "¿Funciona en el móvil?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. El panel y el catálogo están optimizados para móvil y se pueden instalar como app (PWA)." } },
+        { "@type": "Question", "name": "¿Puedo cambiar los idiomas de mi catálogo?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. El catálogo está disponible en español, francés y árabe, y se adapta al idioma del visitante." } },
+        { "@type": "Question", "name": "¿Necesito conocimientos técnicos?", "acceptedAnswer": { "@type": "Answer", "text": "No. Todo se configura desde el panel con formularios simples, sin escribir código." } }
+      ]
+    }
+  ]
+}
+</script>
+
+<!-- ===== Ajustes exclusivos de la home (no afectan a otras páginas) ===== -->
+<style>
+  /* Accesibilidad: enlace para saltar al contenido */
+  .skip-link {
+    position: absolute; inset-inline-start: -9999px; top: 10px; z-index: 200;
+    background: #fff; color: var(--brand-600); padding: 10px 16px; border-radius: 10px;
+    box-shadow: var(--shadow-lg); font-weight: 650;
+  }
+  .skip-link:focus { inset-inline-start: 10px; }
+
+  /* Foco visible consistente */
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 3px solid var(--brand-500); outline-offset: 2px; border-radius: 6px;
+  }
+
+  /* Ritmo vertical más compacto en la home */
+  section.block { padding: 62px 0; }
+  .hero { padding: 56px 0 48px; }
+
+  /* Jerarquía del hero */
+  .hero h1 { max-width: 20ch; }
+  .hero .hero-cta { gap: 14px; }
+  .hero .hero-cta .btn { min-width: 216px; }
+  .hero .trust { gap: 18px; }
+  @media (min-width: 981px) { .hero .container { gap: 60px; } }
+
+  /* Tarjetas con realce al pasar el ratón */
+  .card { transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+  .card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+  .example-card { transition: transform .18s ease, box-shadow .18s ease; }
+  .example-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+
+  /* Barra de acción fija en móvil (mejora la conversión) */
+  .mobile-cta {
+    position: fixed; inset-inline: 0; bottom: 0; z-index: 85;
+    background: rgba(255,255,255,.96); backdrop-filter: blur(10px);
+    border-top: 1px solid var(--line); padding: 10px 14px;
+    transform: translateY(115%); transition: transform .25s ease; display: none;
+  }
+  .mobile-cta.show { transform: none; }
+  .mobile-cta-inner { display: flex; align-items: center; gap: 12px; max-width: var(--max); margin: 0 auto; }
+  .mobile-cta .btn { white-space: nowrap; }
+
+  @media (max-width: 760px) {
+    .mobile-cta { display: block; }
+    body.has-mobile-cta .chat-fab { bottom: 84px; }
+    body.has-mobile-cta .pwa-banner { bottom: 78px; }
+  }
+
+  /* Respeto a usuarios con movimiento reducido */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+</style>
 </head>
 <body>
+
+<a class="skip-link" href="#main">Saltar al contenido</a>
 
 <!-- ================= HEADER ================= -->
 <header class="site-header">
   <div class="container">
-    <a class="brand" href="/index.html">
-      <span class="logo">CW</span>
+    <a class="brand" href="/index.html" aria-label="Catalogo Wha — inicio">
+      <span class="logo" aria-hidden="true">CW</span>
       <span>Catalogo&nbsp;<b>Wha</b></span>
     </a>
 
-    <nav class="nav">
+    <nav class="nav" aria-label="Navegación principal">
       <a href="#how" data-i18n="nav.how">Cómo funciona</a>
       <a href="#features" data-i18n="nav.features">Funciones</a>
       <a href="#examples" data-i18n="examples.eyebrow">Ejemplos</a>
@@ -94,14 +193,14 @@
       <a class="btn btn-ghost btn-sm desktop-only" data-auth="out" href="/login.html" data-i18n="nav.login">Iniciar sesión</a>
       <a class="btn btn-primary btn-sm desktop-only" data-auth="out" href="/login.html#registro" data-i18n="nav.create">Crear mi catálogo</a>
 
-      <button class="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+      <button class="burger" aria-label="Abrir menú" aria-controls="mobileMenu"><span></span><span></span><span></span></button>
     </div>
   </div>
 </header>
 
 <!-- ================= MENÚ MÓVIL ================= -->
 <div class="mobile-menu" id="mobileMenu">
-  <nav class="nav">
+  <nav class="nav" aria-label="Navegación móvil">
     <a href="#how" data-i18n="nav.how">Cómo funciona</a>
     <a href="#features" data-i18n="nav.features">Funciones</a>
     <a href="#examples" data-i18n="examples.eyebrow">Ejemplos</a>
@@ -128,279 +227,288 @@
   </div>
 </div>
 
-<!-- ================= HERO ================= -->
-<section class="hero">
-  <div class="container">
-    <div>
-      <span style="display:inline-block;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--brand-600);background:var(--brand-100);padding:6px 12px;border-radius:999px;margin-bottom:16px" data-i18n="hero.eyebrow">Catálogo online + WhatsApp</span>
-      <h1><span data-i18n="hero.title1">Crea tu catálogo online y</span> <span data-i18n="hero.title2" style="color:var(--brand-600)">recibe pedidos por WhatsApp</span></h1>
-      <p class="lead" data-i18n="hero.lead">Agrega tus productos, comparte un solo enlace y permite que tus clientes preparen su pedido antes de escribirte por WhatsApp.</p>
-      <div class="hero-cta">
-        <a class="btn btn-primary" data-auth="out" href="/login.html#registro" data-i18n="hero.cta1">Crear mi catálogo gratis</a>
-        <a class="btn btn-primary hidden" data-auth="in" href="/dashboard.html" data-i18n="nav.myPanel">Mi panel</a>
-        <a class="btn btn-ghost" href="/catalogo.html?b=demo" data-i18n="hero.cta2">Ver una demostración</a>
-      </div>
-      <div class="trust">
-        <span>✓ <span data-i18n="hero.trust1">Sin tarjeta de crédito</span></span>
-        <span>✓ <span data-i18n="hero.trust2">Listo en 3 pasos</span></span>
-        <span>✓ <span data-i18n="hero.trust3">Enlace propio para compartir</span></span>
-      </div>
-    </div>
+<main id="main">
 
-    <div>
-      <div class="shot-card">
-        <img src="assets/img/hero-catalog.png" alt="Catálogo de productos en un móvil con pedido por WhatsApp" data-i18n-alt="hero.imgAlt" loading="eager" width="1024" height="1024">
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= CIFRAS ================= -->
-<section class="block" style="padding:36px 0">
-  <div class="container">
-    <p class="center muted small" data-i18n="stats.title">Negocios que ya venden por WhatsApp</p>
-    <div class="stat-strip mt-2">
-      <div class="center"><div class="n">2.500+</div><div class="small muted" data-i18n="stats.s1">Negocios activos</div></div>
-      <div class="center"><div class="n">120.000+</div><div class="small muted" data-i18n="stats.s2">Pedidos enviados</div></div>
-      <div class="center"><div class="n">12</div><div class="small muted" data-i18n="stats.s3">Países</div></div>
-      <div class="center"><div class="n">24/7</div><div class="small muted" data-i18n="stats.s4">Soporte</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= PROBLEMA ================= -->
-<section class="block alt">
-  <div class="container">
-    <div class="section-head">
-      <span class="eyebrow" data-i18n="pain.eyebrow">El problema</span>
-      <h2 data-i18n="pain.title">¿Sigues enviando fotos y precios uno por uno?</h2>
-      <p data-i18n="pain.lead">Responder mensajes con fotos sueltas hace perder ventas. Con Catalogo Wha tus clientes ven todo, eligen y te escriben con el pedido ya armado.</p>
-    </div>
-    <div class="grid cols-2">
-      <div class="card">
-        <div class="ico">✗</div>
-        <h3 data-i18n="pain.card1.title">Sin catálogo</h3>
-        <p data-i18n="pain.card1.text">Envías fotos sueltas y precios que se pierden en el chat.</p>
-      </div>
-      <div class="card" style="border-color:var(--brand-500)">
-        <div class="ico" style="background:var(--ok-bg);color:var(--ok)">✓</div>
-        <h3 data-i18n="pain.card2.title">Con Catalogo Wha</h3>
-        <p data-i18n="pain.card2.text">Un enlace ordenado con productos, precios y pedido listo para WhatsApp.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= VALOR ================= -->
-<section class="block">
-  <div class="container">
-    <div class="section-head">
-      <span class="eyebrow" data-i18n="value.eyebrow">Tu catálogo, simple</span>
-      <h2 data-i18n="value.title">Tu catálogo online, sin complicaciones</h2>
-      <p data-i18n="value.lead">Todo lo que necesitas para mostrar productos y recibir pedidos desde un solo lugar.</p>
-    </div>
-    <div class="grid cols-3">
-      <div class="card"><div class="ico">🔗</div><h3 data-i18n="value.c1.title">Un enlace para compartir</h3><p data-i18n="value.c1.text">Comparte tu catálogo por WhatsApp, redes sociales o tu bio.</p></div>
-      <div class="card"><div class="ico">🧾</div><h3 data-i18n="value.c2.title">Pedidos organizados</h3><p data-i18n="value.c2.text">Cada pedido llega con productos, cantidades y total calculado.</p></div>
-      <div class="card"><div class="ico">🎨</div><h3 data-i18n="value.c3.title">Tu marca</h3><p data-i18n="value.c3.text">Logo, color y encabezado con la identidad de tu negocio.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= PASOS ================= -->
-<section class="block alt" id="how">
-  <div class="container">
-    <div class="section-head">
-      <span class="eyebrow" data-i18n="steps.eyebrow">Empieza ya</span>
-      <h2 data-i18n="steps.title">Tu negocio puede empezar en tres pasos</h2>
-    </div>
-    <div class="grid cols-3 steps">
-      <div class="step"><div class="num">1</div><h3 data-i18n="steps.s1.title">Crea tu cuenta</h3><p data-i18n="steps.s1.text">Regístrate gratis y configura el nombre de tu negocio.</p></div>
-      <div class="step"><div class="num">2</div><h3 data-i18n="steps.s2.title">Agrega productos</h3><p data-i18n="steps.s2.text">Sube fotos, precios y categorías desde tu panel.</p></div>
-      <div class="step"><div class="num">3</div><h3 data-i18n="steps.s3.title">Comparte y vende</h3><p data-i18n="steps.s3.text">Envía el enlace y recibe pedidos por WhatsApp.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= FUNCIONES ================= -->
-<section class="block" id="features">
-  <div class="container">
-    <div class="section-head">
-      <span class="eyebrow" data-i18n="features.eyebrow">Funciones</span>
-      <h2 data-i18n="features.title">Todo lo necesario para organizar tu catálogo y tus pedidos</h2>
-    </div>
-    <div class="grid cols-4">
-      <div class="card"><div class="ico">📦</div><h3 data-i18n="features.f1.title">Productos</h3><p data-i18n="features.f1.text">Fotos, descripción, precio y precio promocional.</p></div>
-      <div class="card"><div class="ico">🗂️</div><h3 data-i18n="features.f2.title">Categorías</h3><p data-i18n="features.f2.text">Organiza y ordena lo que tus clientes verán primero.</p></div>
-      <div class="card"><div class="ico">🧾</div><h3 data-i18n="features.f3.title">Pedidos</h3><p data-i18n="features.f3.text">Revisa y gestiona los pedidos que llegan.</p></div>
-      <div class="card"><div class="ico">💬</div><h3 data-i18n="features.f4.title">WhatsApp</h3><p data-i18n="features.f4.text">Cada pedido se envía a tu número en un mensaje claro.</p></div>
-      <div class="card"><div class="ico">🖼️</div><h3 data-i18n="features.f5.title">Biblioteca</h3><p data-i18n="features.f5.text">Sube imágenes una vez y reutilízalas cuando quieras.</p></div>
-      <div class="card"><div class="ico">🌍</div><h3 data-i18n="features.f6.title">Multidioma</h3><p data-i18n="features.f6.text">Catálogo en español, francés y árabe.</p></div>
-      <div class="card"><div class="ico">🔗</div><h3 data-i18n="features.f7.title">Enlace propio</h3><p data-i18n="features.f7.text">Elige la dirección de tu catálogo público.</p></div>
-      <div class="card"><div class="ico">📱</div><h3 data-i18n="features.f8.title">App instalable (PWA)</h3><p data-i18n="features.f8.text">Instala Catalogo Wha en tu móvil como una app.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= CLIENTES ================= -->
-<section class="block alt">
-  <div class="container">
-    <div class="section-head">
-      <span class="eyebrow" data-i18n="share.eyebrow">Para tus clientes</span>
-      <h2 data-i18n="share.title">Tus clientes preparan su pedido antes de escribirte</h2>
-      <p data-i18n="share.lead">Elige productos, ajusta cantidades y envía el pedido por WhatsApp en un solo mensaje.</p>
-    </div>
-    <div class="grid cols-3">
-      <div class="card"><div class="ico">1</div><p data-i18n="share.b1">El cliente arma el carrito sin registrarse.</p></div>
-      <div class="card"><div class="ico">2</div><p data-i18n="share.b2">Ve el total y confirma antes de enviar.</p></div>
-      <div class="card"><div class="ico">3</div><p data-i18n="share.b3">Tú recibes el pedido detallado por WhatsApp.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= EJEMPLOS CON IMÁGENES ================= -->
-<section class="block" id="examples">
-  <div class="container">
-    <div class="section-head">
-      <span class="eyebrow" data-i18n="examples.eyebrow">Ejemplos</span>
-      <h2 data-i18n="examples.title">Mira lo que puedes crear con Catalogo Wha</h2>
-      <p data-i18n="examples.lead">Diferentes estilos de catálogo para diferentes negocios.</p>
-    </div>
-    <div class="grid cols-3">
-      <article class="example-card">
-        <img src="assets/img/example-restaurant.png" alt="Catálogo digital de restaurante en una tablet" loading="lazy">
-        <div class="body">
-          <h3 data-i18n="examples.e1.title">Restaurantes</h3>
-          <p data-i18n="examples.e1.text">Menú digital con fotos, precios y pedido directo por WhatsApp.</p>
+  <!-- ================= HERO ================= -->
+  <section class="hero">
+    <div class="container">
+      <div>
+        <span style="display:inline-block;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--brand-600);background:var(--brand-100);padding:6px 12px;border-radius:999px;margin-bottom:16px" data-i18n="hero.eyebrow">Catálogo online + WhatsApp</span>
+        <h1><span data-i18n="hero.title1">Crea tu catálogo online y</span> <span data-i18n="hero.title2" style="color:var(--brand-600)">recibe pedidos por WhatsApp</span></h1>
+        <p class="lead" data-i18n="hero.lead">Agrega tus productos, comparte un solo enlace y permite que tus clientes preparen su pedido antes de escribirte por WhatsApp.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" data-auth="out" href="/login.html#registro" data-i18n="hero.cta1">Crear mi catálogo gratis</a>
+          <a class="btn btn-primary hidden" data-auth="in" href="/dashboard.html" data-i18n="nav.myPanel">Mi panel</a>
+          <a class="btn btn-ghost" href="/catalogo.html?b=demo" data-i18n="hero.cta2">Ver una demostración</a>
         </div>
-      </article>
-      <article class="example-card">
-        <img src="assets/img/example-fashion.png" alt="Catálogo de moda en un móvil dentro de una boutique" loading="lazy">
-        <div class="body">
-          <h3 data-i18n="examples.e2.title">Moda y boutique</h3>
-          <p data-i18n="examples.e2.text">Colecciones organizadas por categorías, tallas y colores.</p>
+        <div class="trust">
+          <span>✓ <span data-i18n="hero.trust1">Sin tarjeta de crédito</span></span>
+          <span>✓ <span data-i18n="hero.trust2">Listo en 3 pasos</span></span>
+          <span>✓ <span data-i18n="hero.trust3">Enlace propio para compartir</span></span>
         </div>
-      </article>
-      <article class="example-card">
-        <img src="assets/img/example-materials.png" alt="Catálogo de materiales de construcción en un móvil" loading="lazy">
-        <div class="body">
-          <h3 data-i18n="examples.e3.title">Materiales y construcción</h3>
-          <p data-i18n="examples.e3.text">Catálogos técnicos con precios y disponibilidad siempre al día.</p>
+      </div>
+
+      <div>
+        <div class="shot-card">
+          <img src="/assets/img/hero-catalog.png"
+               alt="Catálogo de productos en un móvil con pedido por WhatsApp"
+               data-i18n-alt="hero.imgAlt"
+               width="1024" height="1024"
+               fetchpriority="high" decoding="async" loading="eager">
         </div>
-      </article>
-    </div>
-  </div>
-</section>
-
-<!-- ================= TESTIMONIOS ================= -->
-<section class="block alt">
-  <div class="container">
-    <div class="section-head">
-      <span class="eyebrow" data-i18n="testimonials.eyebrow">Testimonios</span>
-      <h2 data-i18n="testimonials.title">Lo que dicen quienes ya venden con Catalogo Wha</h2>
-    </div>
-    <div class="grid cols-3">
-      <div class="card quote">
-        <div class="stars">★★★★★</div>
-        <p data-i18n="testimonials.t1">Antes enviaba fotos una por una. Ahora mando un enlace y los pedidos llegan armados. Gané horas al día.</p>
-        <div class="who"><div class="avatar">S</div><strong class="small" data-i18n="testimonials.t1.who">Sara M. — Boutique de moda</strong></div>
-      </div>
-      <div class="card quote">
-        <div class="stars">★★★★★</div>
-        <p data-i18n="testimonials.t2">Mis clientes encuentran todo solos y yo recibo el pedido completo por WhatsApp. Muy simple.</p>
-        <div class="who"><div class="avatar">Y</div><strong class="small" data-i18n="testimonials.t2.who">Youssef A. — Materiales de construcción</strong></div>
-      </div>
-      <div class="card quote">
-        <div class="stars">★★★★★</div>
-        <p data-i18n="testimonials.t3">Instalé la app en el móvil y actualizo precios desde el mostrador. Cambió mi forma de vender.</p>
-        <div class="who"><div class="avatar">N</div><strong class="small" data-i18n="testimonials.t3.who">Nadia R. — Tienda de alimentación</strong></div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ================= CTA ================= -->
-<section class="block">
-  <div class="container">
-    <div class="section-head">
-      <h2 data-i18n="cta.title">No necesitas empezar con una tienda online completa</h2>
-      <p data-i18n="cta.lead">Empieza con un catálogo, comparte un enlace y sigue vendiendo por WhatsApp.</p>
+  <!-- ================= CIFRAS ================= -->
+  <section class="block" style="padding:34px 0" aria-label="Cifras">
+    <div class="container">
+      <p class="center muted small" data-i18n="stats.title">Negocios que ya venden por WhatsApp</p>
+      <div class="stat-strip mt-2">
+        <div class="center"><div class="n">2.500+</div><div class="small muted" data-i18n="stats.s1">Negocios activos</div></div>
+        <div class="center"><div class="n">120.000+</div><div class="small muted" data-i18n="stats.s2">Pedidos enviados</div></div>
+        <div class="center"><div class="n">12</div><div class="small muted" data-i18n="stats.s3">Países</div></div>
+        <div class="center"><div class="n">24/7</div><div class="small muted" data-i18n="stats.s4">Soporte</div></div>
+      </div>
     </div>
-    <div class="grid cols-3">
-      <div class="card center"><div style="font-size:2.2rem;font-weight:750">1</div><div class="muted" data-i18n="cta.b1sub">para compartir</div></div>
-      <div class="card center"><div style="font-size:2.2rem;font-weight:750">2</div><div class="muted" data-i18n="cta.b2sub">cliente elige y envía</div></div>
-      <div class="card center"><div style="font-size:2.2rem;font-weight:750">100%</div><div class="muted" data-i18n="cta.b3sub">venta por WhatsApp</div></div>
-    </div>
-  </div>
-</section>
+  </section>
 
-<!-- ================= PRECIOS ================= -->
-<section class="block alt" id="pricing">
-  <div class="container">
-    <div class="section-head">
-      <span class="eyebrow" data-i18n="pricing.eyebrow">Precios</span>
-      <h2 data-i18n="pricing.title">Crea tu catálogo y empieza a recibir pedidos</h2>
+  <!-- ================= PROBLEMA / SOLUCIÓN ================= -->
+  <section class="block alt">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="pain.eyebrow">El problema</span>
+        <h2 data-i18n="pain.title">¿Sigues enviando fotos y precios uno por uno?</h2>
+        <p data-i18n="pain.lead">Responder mensajes con fotos sueltas hace perder ventas. Con Catalogo Wha tus clientes ven todo, eligen y te escriben con el pedido ya armado.</p>
+      </div>
+      <div class="grid cols-2">
+        <div class="card">
+          <div class="ico" aria-hidden="true">✗</div>
+          <h3 data-i18n="pain.card1.title">Sin catálogo</h3>
+          <p data-i18n="pain.card1.text">Envías fotos sueltas y precios que se pierden en el chat.</p>
+        </div>
+        <div class="card" style="border-color:var(--brand-500)">
+          <div class="ico" style="background:var(--ok-bg);color:var(--ok)" aria-hidden="true">✓</div>
+          <h3 data-i18n="pain.card2.title">Con Catalogo Wha</h3>
+          <p data-i18n="pain.card2.text">Un enlace ordenado con productos, precios y pedido listo para WhatsApp.</p>
+        </div>
+      </div>
     </div>
-    <div class="price-card">
-      <div class="small muted" data-i18n="pricing.plan">Plan inicial</div>
-      <div class="amount">USD 0</div>
-      <div class="small muted" data-i18n="pricing.period">para siempre</div>
-      <ul>
-        <li data-i18n="pricing.i1">Productos ilimitados</li>
-        <li data-i18n="pricing.i2">Categorías y biblioteca de imágenes</li>
-        <li data-i18n="pricing.i3">Pedidos por WhatsApp</li>
-        <li data-i18n="pricing.i4">Enlace de catálogo propio</li>
-        <li data-i18n="pricing.i5">Multidioma (ES / FR / AR)</li>
-        <li data-i18n="pricing.i6">App instalable (PWA)</li>
-      </ul>
-      <a class="btn btn-primary btn-block" data-auth="out" href="/login.html#registro" data-i18n="pricing.cta">Crear mi catálogo gratis</a>
-      <a class="btn btn-primary btn-block hidden" data-auth="in" href="/dashboard.html" data-i18n="nav.myPanel">Mi panel</a>
-      <p class="small muted mt-2" data-i18n="pricing.note">Sin tarjeta de crédito. Puedes actualizar cuando quieras.</p>
-    </div>
-  </div>
-</section>
+  </section>
 
-<!-- ================= FAQ ================= -->
-<section class="block" id="faq">
-  <div class="container" style="max-width:820px">
-    <div class="section-head">
-      <span class="eyebrow" data-i18n="faq.eyebrow">Antes de comenzar</span>
-      <h2 data-i18n="faq.title">Preguntas frecuentes</h2>
+  <!-- ================= VALOR ================= -->
+  <section class="block">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="value.eyebrow">Tu catálogo, simple</span>
+        <h2 data-i18n="value.title">Tu catálogo online, sin complicaciones</h2>
+        <p data-i18n="value.lead">Todo lo que necesitas para mostrar productos y recibir pedidos desde un solo lugar.</p>
+      </div>
+      <div class="grid cols-3">
+        <div class="card"><div class="ico" aria-hidden="true">🔗</div><h3 data-i18n="value.c1.title">Un enlace para compartir</h3><p data-i18n="value.c1.text">Comparte tu catálogo por WhatsApp, redes sociales o tu bio.</p></div>
+        <div class="card"><div class="ico" aria-hidden="true">🧾</div><h3 data-i18n="value.c2.title">Pedidos organizados</h3><p data-i18n="value.c2.text">Cada pedido llega con productos, cantidades y total calculado.</p></div>
+        <div class="card"><div class="ico" aria-hidden="true">🎨</div><h3 data-i18n="value.c3.title">Tu marca</h3><p data-i18n="value.c3.text">Logo, color y encabezado con la identidad de tu negocio.</p></div>
+      </div>
     </div>
-    <div class="faq">
-      <details open><summary data-i18n="faq.q1">¿Necesito una tienda online completa?</summary><p data-i18n="faq.a1">No. Catalogo Wha es un catálogo para mostrar productos y recibir pedidos por WhatsApp. No necesitas pasarela de pago ni dominio propio.</p></details>
-      <details><summary data-i18n="faq.q2">¿Mis clientes deben registrarse para pedir?</summary><p data-i18n="faq.a2">No. Tus clientes abren el enlace, eligen productos y envían el pedido por WhatsApp sin crear cuenta.</p></details>
-      <details><summary data-i18n="faq.q3">¿Puedo usar mi propio número de WhatsApp?</summary><p data-i18n="faq.a3">Sí. Configura el número de tu negocio en el panel y todos los pedidos llegarán ahí.</p></details>
-      <details><summary data-i18n="faq.q4">¿Puedo cambiar el enlace de mi catálogo?</summary><p data-i18n="faq.a4">Sí. Puedes personalizar el nombre del enlace (subdominio) desde la configuración del negocio.</p></details>
-      <details><summary data-i18n="faq.q5">¿Funciona en el móvil?</summary><p data-i18n="faq.a5">Sí. El panel y el catálogo están optimizados para móvil y se pueden instalar como app (PWA).</p></details>
-      <details><summary data-i18n="faq.q6">¿Puedo cambiar los idiomas de mi catálogo?</summary><p data-i18n="faq.a6">Sí. El catálogo está disponible en español, francés y árabe, y se adapta al idioma del visitante.</p></details>
-      <details><summary data-i18n="faq.q7">¿Necesito conocimientos técnicos?</summary><p data-i18n="faq.a7">No. Todo se configura desde el panel con formularios simples, sin escribir código.</p></details>
-    </div>
-  </div>
-</section>
+  </section>
 
-<!-- ================= FINAL ================= -->
-<section class="block" style="background:linear-gradient(120deg,var(--brand),var(--brand-500))">
-  <div class="container center">
-    <h2 style="color:#fff" data-i18n="final.title">Crea tu catálogo y empieza a recibir pedidos por WhatsApp</h2>
-    <p style="color:rgba(255,255,255,.85)" data-i18n="final.lead">Regístrate gratis, agrega tus productos y comparte tu enlace hoy mismo.</p>
-    <a class="btn btn-wa" data-auth="out" href="/login.html#registro" data-i18n="final.cta">Crear mi catálogo gratis</a>
-    <a class="btn btn-wa hidden" data-auth="in" href="/dashboard.html" data-i18n="nav.myPanel">Mi panel</a>
-  </div>
-</section>
+  <!-- ================= EJEMPLOS (prueba visual temprana) ================= -->
+  <section class="block alt" id="examples">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="examples.eyebrow">Ejemplos</span>
+        <h2 data-i18n="examples.title">Mira lo que puedes crear con Catalogo Wha</h2>
+        <p data-i18n="examples.lead">Diferentes estilos de catálogo para diferentes negocios.</p>
+      </div>
+      <div class="grid cols-3">
+        <article class="example-card">
+          <img src="/assets/img/example-restaurant.png" alt="Catálogo digital de restaurante en una tablet" width="1024" height="768" loading="lazy" decoding="async">
+          <div class="body">
+            <h3 data-i18n="examples.e1.title">Restaurantes</h3>
+            <p data-i18n="examples.e1.text">Menú digital con fotos, precios y pedido directo por WhatsApp.</p>
+          </div>
+        </article>
+        <article class="example-card">
+          <img src="/assets/img/example-fashion.png" alt="Catálogo de moda en un móvil dentro de una boutique" width="1024" height="768" loading="lazy" decoding="async">
+          <div class="body">
+            <h3 data-i18n="examples.e2.title">Moda y boutique</h3>
+            <p data-i18n="examples.e2.text">Colecciones organizadas por categorías, tallas y colores.</p>
+          </div>
+        </article>
+        <article class="example-card">
+          <img src="/assets/img/example-materials.png" alt="Catálogo de materiales de construcción en un móvil" width="1024" height="768" loading="lazy" decoding="async">
+          <div class="body">
+            <h3 data-i18n="examples.e3.title">Materiales y construcción</h3>
+            <p data-i18n="examples.e3.text">Catálogos técnicos con precios y disponibilidad siempre al día.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PASOS ================= -->
+  <section class="block" id="how">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="steps.eyebrow">Empieza ya</span>
+        <h2 data-i18n="steps.title">Tu negocio puede empezar en tres pasos</h2>
+      </div>
+      <div class="grid cols-3 steps">
+        <div class="step"><div class="num" aria-hidden="true">1</div><h3 data-i18n="steps.s1.title">Crea tu cuenta</h3><p data-i18n="steps.s1.text">Regístrate gratis y configura el nombre de tu negocio.</p></div>
+        <div class="step"><div class="num" aria-hidden="true">2</div><h3 data-i18n="steps.s2.title">Agrega productos</h3><p data-i18n="steps.s2.text">Sube fotos, precios y categorías desde tu panel.</p></div>
+        <div class="step"><div class="num" aria-hidden="true">3</div><h3 data-i18n="steps.s3.title">Comparte y vende</h3><p data-i18n="steps.s3.text">Envía el enlace y recibe pedidos por WhatsApp.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FUNCIONES ================= -->
+  <section class="block alt" id="features">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="features.eyebrow">Funciones</span>
+        <h2 data-i18n="features.title">Todo lo necesario para organizar tu catálogo y tus pedidos</h2>
+      </div>
+      <div class="grid cols-4">
+        <div class="card"><div class="ico" aria-hidden="true">📦</div><h3 data-i18n="features.f1.title">Productos</h3><p data-i18n="features.f1.text">Fotos, descripción, precio y precio promocional.</p></div>
+        <div class="card"><div class="ico" aria-hidden="true">🗂️</div><h3 data-i18n="features.f2.title">Categorías</h3><p data-i18n="features.f2.text">Organiza y ordena lo que tus clientes verán primero.</p></div>
+        <div class="card"><div class="ico" aria-hidden="true">🧾</div><h3 data-i18n="features.f3.title">Pedidos</h3><p data-i18n="features.f3.text">Revisa y gestiona los pedidos que llegan.</p></div>
+        <div class="card"><div class="ico" aria-hidden="true">💬</div><h3 data-i18n="features.f4.title">WhatsApp</h3><p data-i18n="features.f4.text">Cada pedido se envía a tu número en un mensaje claro.</p></div>
+        <div class="card"><div class="ico" aria-hidden="true">🖼️</div><h3 data-i18n="features.f5.title">Biblioteca</h3><p data-i18n="features.f5.text">Sube imágenes una vez y reutilízalas cuando quieras.</p></div>
+        <div class="card"><div class="ico" aria-hidden="true">🌍</div><h3 data-i18n="features.f6.title">Multidioma</h3><p data-i18n="features.f6.text">Catálogo en español, francés y árabe.</p></div>
+        <div class="card"><div class="ico" aria-hidden="true">🔗</div><h3 data-i18n="features.f7.title">Enlace propio</h3><p data-i18n="features.f7.text">Elige la dirección de tu catálogo público.</p></div>
+        <div class="card"><div class="ico" aria-hidden="true">📱</div><h3 data-i18n="features.f8.title">App instalable (PWA)</h3><p data-i18n="features.f8.text">Instala Catalogo Wha en tu móvil como una app.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FLUJO DEL CLIENTE ================= -->
+  <section class="block">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="share.eyebrow">Para tus clientes</span>
+        <h2 data-i18n="share.title">Tus clientes preparan su pedido antes de escribirte</h2>
+        <p data-i18n="share.lead">Elige productos, ajusta cantidades y envía el pedido por WhatsApp en un solo mensaje.</p>
+      </div>
+      <div class="grid cols-3">
+        <div class="card"><div class="ico" aria-hidden="true">1</div><p data-i18n="share.b1">El cliente arma el carrito sin registrarse.</p></div>
+        <div class="card"><div class="ico" aria-hidden="true">2</div><p data-i18n="share.b2">Ve el total y confirma antes de enviar.</p></div>
+        <div class="card"><div class="ico" aria-hidden="true">3</div><p data-i18n="share.b3">Tú recibes el pedido detallado por WhatsApp.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TESTIMONIOS ================= -->
+  <section class="block alt">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="testimonials.eyebrow">Testimonios</span>
+        <h2 data-i18n="testimonials.title">Lo que dicen quienes ya venden con Catalogo Wha</h2>
+      </div>
+      <div class="grid cols-3">
+        <div class="card quote">
+          <div class="stars" aria-hidden="true">★★★★★</div>
+          <p data-i18n="testimonials.t1">Antes enviaba fotos una por una. Ahora mando un enlace y los pedidos llegan armados. Gané horas al día.</p>
+          <div class="who"><div class="avatar" aria-hidden="true">S</div><strong class="small" data-i18n="testimonials.t1.who">Sara M. — Boutique de moda</strong></div>
+        </div>
+        <div class="card quote">
+          <div class="stars" aria-hidden="true">★★★★★</div>
+          <p data-i18n="testimonials.t2">Mis clientes encuentran todo solos y yo recibo el pedido completo por WhatsApp. Muy simple.</p>
+          <div class="who"><div class="avatar" aria-hidden="true">Y</div><strong class="small" data-i18n="testimonials.t2.who">Youssef A. — Materiales de construcción</strong></div>
+        </div>
+        <div class="card quote">
+          <div class="stars" aria-hidden="true">★★★★★</div>
+          <p data-i18n="testimonials.t3">Instalé la app en el móvil y actualizo precios desde el mostrador. Cambió mi forma de vender.</p>
+          <div class="who"><div class="avatar" aria-hidden="true">N</div><strong class="small" data-i18n="testimonials.t3.who">Nadia R. — Tienda de alimentación</strong></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CTA INTERMEDIO ================= -->
+  <section class="block" style="padding:46px 0">
+    <div class="container">
+      <div class="section-head">
+        <h2 data-i18n="cta.title">No necesitas empezar con una tienda online completa</h2>
+        <p data-i18n="cta.lead">Empieza con un catálogo, comparte un enlace y sigue vendiendo por WhatsApp.</p>
+      </div>
+      <div class="grid cols-3">
+        <div class="card center"><div style="font-size:2.2rem;font-weight:750">1</div><div class="muted" data-i18n="cta.b1sub">para compartir</div></div>
+        <div class="card center"><div style="font-size:2.2rem;font-weight:750">2</div><div class="muted" data-i18n="cta.b2sub">cliente elige y envía</div></div>
+        <div class="card center"><div style="font-size:2.2rem;font-weight:750">100%</div><div class="muted" data-i18n="cta.b3sub">venta por WhatsApp</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PRECIOS ================= -->
+  <section class="block alt" id="pricing">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="pricing.eyebrow">Precios</span>
+        <h2 data-i18n="pricing.title">Crea tu catálogo y empieza a recibir pedidos</h2>
+      </div>
+      <div class="price-card">
+        <div class="small muted" data-i18n="pricing.plan">Plan inicial</div>
+        <div class="amount">USD 0</div>
+        <div class="small muted" data-i18n="pricing.period">para siempre</div>
+        <ul>
+          <li data-i18n="pricing.i1">Productos ilimitados</li>
+          <li data-i18n="pricing.i2">Categorías y biblioteca de imágenes</li>
+          <li data-i18n="pricing.i3">Pedidos por WhatsApp</li>
+          <li data-i18n="pricing.i4">Enlace de catálogo propio</li>
+          <li data-i18n="pricing.i5">Multidioma (ES / FR / AR)</li>
+          <li data-i18n="pricing.i6">App instalable (PWA)</li>
+        </ul>
+        <a class="btn btn-primary btn-block" data-auth="out" href="/login.html#registro" data-i18n="pricing.cta">Crear mi catálogo gratis</a>
+        <a class="btn btn-primary btn-block hidden" data-auth="in" href="/dashboard.html" data-i18n="nav.myPanel">Mi panel</a>
+        <p class="small muted mt-2" data-i18n="pricing.note">Sin tarjeta de crédito. Puedes actualizar cuando quieras.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FAQ ================= -->
+  <section class="block" id="faq">
+    <div class="container" style="max-width:820px">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="faq.eyebrow">Antes de comenzar</span>
+        <h2 data-i18n="faq.title">Preguntas frecuentes</h2>
+      </div>
+      <div class="faq">
+        <details open><summary data-i18n="faq.q1">¿Necesito una tienda online completa?</summary><p data-i18n="faq.a1">No. Catalogo Wha es un catálogo para mostrar productos y recibir pedidos por WhatsApp. No necesitas pasarela de pago ni dominio propio.</p></details>
+        <details><summary data-i18n="faq.q2">¿Mis clientes deben registrarse para pedir?</summary><p data-i18n="faq.a2">No. Tus clientes abren el enlace, eligen productos y envían el pedido por WhatsApp sin crear cuenta.</p></details>
+        <details><summary data-i18n="faq.q3">¿Puedo usar mi propio número de WhatsApp?</summary><p data-i18n="faq.a3">Sí. Configura el número de tu negocio en el panel y todos los pedidos llegarán ahí.</p></details>
+        <details><summary data-i18n="faq.q4">¿Puedo cambiar el enlace de mi catálogo?</summary><p data-i18n="faq.a4">Sí. Puedes personalizar el nombre del enlace (subdominio) desde la configuración del negocio.</p></details>
+        <details><summary data-i18n="faq.q5">¿Funciona en el móvil?</summary><p data-i18n="faq.a5">Sí. El panel y el catálogo están optimizados para móvil y se pueden instalar como app (PWA).</p></details>
+        <details><summary data-i18n="faq.q6">¿Puedo cambiar los idiomas de mi catálogo?</summary><p data-i18n="faq.a6">Sí. El catálogo está disponible en español, francés y árabe, y se adapta al idioma del visitante.</p></details>
+        <details><summary data-i18n="faq.q7">¿Necesito conocimientos técnicos?</summary><p data-i18n="faq.a7">No. Todo se configura desde el panel con formularios simples, sin escribir código.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CTA FINAL ================= -->
+  <section class="block" style="background:linear-gradient(120deg,var(--brand),var(--brand-500))">
+    <div class="container center">
+      <h2 style="color:#fff" data-i18n="final.title">Crea tu catálogo y empieza a recibir pedidos por WhatsApp</h2>
+      <p style="color:rgba(255,255,255,.85)" data-i18n="final.lead">Regístrate gratis, agrega tus productos y comparte tu enlace hoy mismo.</p>
+      <a class="btn btn-wa" data-auth="out" href="/login.html#registro" data-i18n="final.cta">Crear mi catálogo gratis</a>
+      <a class="btn btn-wa hidden" data-auth="in" href="/dashboard.html" data-i18n="nav.myPanel">Mi panel</a>
+    </div>
+  </section>
+
+</main>
 
 <!-- ================= FOOTER ================= -->
 <footer class="site-footer">
   <div class="container">
     <div class="cols">
       <div>
-        <a class="brand" href="/index.html"><span class="logo">CW</span><span>Catalogo&nbsp;<b style="color:#c4b5fd">Wha</b></span></a>
+        <a class="brand" href="/index.html"><span class="logo" aria-hidden="true">CW</span><span>Catalogo&nbsp;<b style="color:#c4b5fd">Wha</b></span></a>
         <p style="color:#a49db6;max-width:32ch;margin-top:12px" data-i18n="meta.desc">Catálogos online para negocios que quieren mostrar productos, recibir pedidos y continuar la venta por WhatsApp.</p>
       </div>
       <div>
         <h4 data-i18n="footer.product">Producto</h4>
         <a href="#how" data-i18n="nav.how">Cómo funciona</a>
         <a href="#features" data-i18n="nav.features">Funciones</a>
+        <a href="#examples" data-i18n="examples.eyebrow">Ejemplos</a>
         <a href="#pricing" data-i18n="nav.pricing">Precios</a>
         <a href="/catalogo.html?b=demo" data-i18n="nav.catalog">Catálogo</a>
       </div>
@@ -417,17 +525,17 @@
       </div>
     </div>
     <div class="bottom">
-      <span>© <span id="year"></span> Catalogo Wha — <span data-i18n="footer.rights">Todos los derechos reservados.</span></span>
+      <span>© <span id="year">2026</span> Catalogo Wha — <span data-i18n="footer.rights">Todos los derechos reservados.</span></span>
       <span data-i18n="footer.legal">Legal</span>
     </div>
   </div>
 </footer>
 
 <!-- ================= CHATBOT ================= -->
-<button class="chat-fab" id="chatFab" aria-label="Chat">💬</button>
-<div class="chat-panel" id="chatPanel">
+<button class="chat-fab" id="chatFab" aria-label="Abrir asistente">💬</button>
+<div class="chat-panel" id="chatPanel" role="dialog" aria-label="Asistente de Catalogo Wha">
   <header>
-    <div class="avatar">🤖</div>
+    <div class="avatar" aria-hidden="true">🤖</div>
     <div>
       <div class="chat-title" data-i18n="chat.title">Asistente de Catalogo Wha</div>
       <div class="chat-sub small" style="color:rgba(255,255,255,.8)" data-i18n="chat.online">Normalmente responde al instante</div>
@@ -436,8 +544,18 @@
   <div class="body chat-body"></div>
   <div class="quick chat-quick"></div>
   <div class="composer">
-    <input class="chat-input" type="text" data-i18n-placeholder="chat.placeholder" placeholder="Escribe tu pregunta…">
+    <input class="chat-input" type="text" aria-label="Escribe tu pregunta" data-i18n-placeholder="chat.placeholder" placeholder="Escribe tu pregunta…">
     <button class="btn btn-primary btn-sm chat-send" data-i18n="chat.send">Enviar</button>
+  </div>
+</div>
+
+<!-- ================= BARRA FIJA MÓVIL ================= -->
+<div class="mobile-cta" id="mobileCta" aria-hidden="true">
+  <div class="mobile-cta-inner">
+    <div class="small"><b>USD 0</b> · <span data-i18n="pricing.period">para siempre</span></div>
+    <div class="spacer"></div>
+    <a class="btn btn-primary btn-sm" data-auth="out" href="/login.html#registro" data-i18n="hero.cta1">Crear mi catálogo gratis</a>
+    <a class="btn btn-primary btn-sm hidden" data-auth="in" href="/dashboard.html" data-i18n="nav.myPanel">Mi panel</a>
   </div>
 </div>
 
@@ -451,11 +569,40 @@
   <button class="btn btn-ghost btn-sm pwa-later" data-i18n="pwa.later">Ahora no</button>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/assets/js/config.js"></script>
-<script src="/assets/js/i18n.js"></script>
-<script src="/assets/js/store.js"></script>
-<script src="/assets/js/common.js"></script>
-<script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+<noscript>
+  <div style="max-width:760px;margin:0 auto;padding:16px;text-align:center">
+    <strong>Catalogo Wha</strong> — Crea tu catálogo online y recibe pedidos por WhatsApp.
+    <br><a href="/catalogo.html?b=demo">Ver catálogo de demostración</a> ·
+    <a href="/login.html#registro">Crear mi catálogo gratis</a>
+  </div>
+</noscript>
+
+<!-- Scripts con defer: no bloquean el renderizado y conservan el orden -->
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="/assets/js/config.js"></script>
+<script defer src="/assets/js/i18n.js"></script>
+<script defer src="/assets/js/store.js"></script>
+<script defer src="/assets/js/common.js"></script>
+
+<script>
+  /* Mejoras exclusivas de la home: año + barra fija móvil */
+  (function () {
+    var yearEl = document.getElementById("year");
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+    var cta = document.getElementById("mobileCta");
+    if (!cta) return;
+    var isMobile = function () { return window.innerWidth <= 760; };
+    var onScroll = function () {
+      var show = isMobile() && window.scrollY > 560;
+      cta.classList.toggle("show", show);
+      document.body.classList.toggle("has-mobile-cta", show);
+      cta.setAttribute("aria-hidden", show ? "false" : "true");
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    onScroll();
+  })();
+</script>
 </body>
 </html>
