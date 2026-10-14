@@ -87,7 +87,8 @@
   async function signUp({ email, password, business, slug }) {
     if (isDemo()) {
       const d = db();
-      d.user = { id: "demo", email };
+      d.user = { id: "demo", email, created_at: (d.user && d.user.created_at) || new Date().toISOString() };
+      saveDemoMeta({ full_name: business, onboarding_done: false });
       if (!d.businesses.some((b) => b.slug === slug)) {
         d.businesses.push({
           id: "biz_" + uid(), owner_id: "demo", name: business, slug,
@@ -108,7 +109,7 @@
     const { data, error } = await sb.auth.signUp({
       email,
       password,
-      options: { data: { business_name: business, slug } }
+      options: { data: { business_name: business, slug, full_name: business, onboarding_done: false } }
     });
     if (error) throw error;
     // Respaldo: si el trigger no estuviera instalado y hay sesión, crear aquí.
@@ -338,6 +339,107 @@
     if (error) throw error;
   }
 
+  /* ---------- CUENTA (perfil, seguridad, datos) ---------- */
+  const META = "cw_demo_meta_v1";
+  function demoMeta() { try { return JSON.parse(localStorage.getItem(META)) || {}; } catch (e) { return {}; } }
+  function saveDemoMeta(m) { localStorage.setItem(META, JSON.stringify(m)); }
+
+  async function userMeta() {
+    if (isDemo()) return demoMeta();
+    init();
+    const { data } = await sb.auth.getUser();
+    return (data && data.user && data.user.user_metadata) || {};
+  }
+
+  async function updateProfile(patch) {
+    if (isDemo()) { const m = Object.assign(demoMeta(), patch); saveDemoMeta(m); return m; }
+    init();
+    const { data, error } = await sb.auth.updateUser({ data: patch });
+    if (error) throw error;
+    return (data.user && data.user.user_metadata) || {};
+  }
+
+  async function updateEmail(email) {
+    if (isDemo()) {
+      const d = db();
+      if (d.user) d.user.email = email;
+      saveDb(d);
+      return { pending: false };
+    }
+    init();
+    const { data, error } = await sb.auth.updateUser({ email });
+    if (error) throw error;
+    // Con la confirmación por correo activa, Supabase envía un email de verificación
+    // y el correo no cambia hasta que el usuario lo confirma.
+    const pending = !!(data.user && data.user.email !== email);
+    return { pending: true, user: data.user };
+  }
+
+  async function updatePassword(password) {
+    if (isDemo()) return true;
+    init();
+    const { error } = await sb.auth.updateUser({ password });
+    if (error) throw error;
+    return true;
+  }
+
+  async function sendPasswordReset(email) {
+    if (isDemo()) return true;
+    init();
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + "/login.html" });
+    if (error) throw error;
+    return true;
+  }
+
+  async function deleteBusinessData(businessId) {
+    if (isDemo()) {
+      const d = db();
+      d.businesses = d.businesses.filter((b) => b.id !== businessId);
+      d.categories = d.categories.filter((c) => c.business_id !== businessId);
+      d.products = d.products.filter((p) => p.business_id !== businessId);
+      d.orders = d.orders.filter((o) => o.business_id !== businessId);
+      d.library = d.library.filter((l) => l.business_id !== businessId);
+      saveDb(d);
+      return true;
+    }
+    init();
+    // El borrado del negocio arrastra categorías, productos, pedidos y biblioteca (ON DELETE CASCADE).
+    const { error } = await sb.from("businesses").delete().eq("id", businessId);
+    if (error) throw error;
+    return true;
+  }
+
+  async function exportData(businessId) {
+    const out = { app: "Catalogo Wha", exported_at: new Date().toISOString(),
+      account: null, business: null, categories: [], products: [], orders: [], library: [] };
+    if (isDemo()) {
+      const d = db();
+      out.account = d.user || null;
+      out.business = d.businesses.find((b) => b.id === businessId) || null;
+      out.categories = d.categories.filter((x) => x.business_id === businessId);
+      out.products = d.products.filter((x) => x.business_id === businessId);
+      out.orders = d.orders.filter((x) => x.business_id === businessId);
+      out.library = d.library.filter((x) => x.business_id === businessId);
+      return out;
+    }
+    init();
+    const { data: u } = await sb.auth.getUser();
+    if (u && u.user) out.account = { id: u.user.id, email: u.user.email, created_at: u.user.created_at };
+    const [biz, c, p, o, l] = await Promise.all([
+      sb.from("businesses").select("*").eq("id", businessId).maybeSingle(),
+      sb.from("categories").select("*").eq("business_id", businessId),
+      sb.from("products").select("*").eq("business_id", businessId),
+      sb.from("orders").select("*").eq("business_id", businessId),
+      sb.from("library").select("*").eq("business_id", businessId)
+    ]);
+    out.business = (biz && biz.data) || null;
+    out.categories = (c && c.data) || [];
+    out.products = (p && p.data) || [];
+    out.orders = (o && o.data) || [];
+    out.library = (l && l.data) || [];
+    return out;
+  }
+
   function fileToDataUrl(file) {
     return new Promise((resolve, reject) => {
       const r = new FileReader();
@@ -351,6 +453,8 @@
     init, isDemo, uid, slugify,
     signUp, signIn, signOut, currentUser,
     myBusiness, updateBusiness, businessBySlug, slugAvailable,
+    userMeta, updateProfile, updateEmail, updatePassword, sendPasswordReset,
+    deleteBusinessData, exportData,
     listCategories, saveCategory, deleteCategory,
     listProducts, saveProduct, deleteProduct,
     listOrders, createOrder, updateOrderStatus,

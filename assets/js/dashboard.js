@@ -10,8 +10,14 @@
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
 
-  const state = { business: null, categories: [], products: [], orders: [], library: [], route: "home" };
+  const state = { business: null, user: null, meta: {}, categories: [], products: [], orders: [], library: [], route: "home" };
   let ready = false;
+
+  /* Estado del asistente de configuración */
+  const SETUP_TOTAL = 5;
+  let setupStep = 0;
+  let setupDraft = null;
+  let setupLogo = "";
 
   /* ---------- Toast ---------- */
   function toast(msg, kind) {
@@ -136,6 +142,8 @@
         case "config-delivery": view.innerHTML = viewConfigDelivery(); bindConfigDelivery(); break;
         case "config-payments": view.innerHTML = viewConfigPayments(); bindConfigPayments(); break;
         case "config-seo": view.innerHTML = viewConfigSeo(); bindConfigSeo(); break;
+        case "account": view.innerHTML = viewAccount(); bindAccount(); break;
+        case "setup": view.innerHTML = viewSetup(); bindSetup(); break;
         default: view.innerHTML = viewHome(); bindHome();
       }
     } catch (e) { console.error(e); view.innerHTML = `<div class="alert alert-error">${U.escapeHtml(e.message || t("common.error"))}</div>`; }
@@ -159,7 +167,7 @@
         </div>
       </div>
 
-      <div class="grid cols-2 mb-3" style="grid-template-columns:2fr 1fr">
+      <div class="grid cols-2 mb-3 dash-2col">
         <div class="card">
           <div class="row"><div>
             <div class="small muted" style="text-transform:uppercase;font-weight:700">${t("dash.yourCatalog")}</div>
@@ -167,7 +175,7 @@
             <p class="small">${t("dash.catalogPublishedSub")}</p>
           </div><div class="spacer"></div><span class="badge ok">● ${t("dash.catalogOnline")}</span></div>
           <div class="row" style="background:var(--bg);border-radius:10px;padding:10px 14px;margin-top:8px">
-            <span class="small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${U.escapeHtml(url)}</span>
+            <span class="small" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${U.escapeHtml(url)}</span>
           </div>
           <div class="row wrap mt-2">
             <button class="btn btn-primary btn-sm" id="copyLink">${t("dash.copyLink")}</button>
@@ -1039,6 +1047,426 @@
     });
   }
 
+  /* ==================== VISTA: MI CUENTA ==================== */
+  function viewAccount() {
+    const u = state.user || {};
+    const m = state.meta || {};
+    const email = u.email || "";
+    const created = u.created_at ? new Date(u.created_at).toLocaleDateString() : "—";
+    const name = m.full_name || state.business.name || "";
+    const initial = (name.charAt(0) || email.charAt(0) || "U").toUpperCase();
+    return `
+      <div class="page-head"><h1>${t("acc.title")}</h1><p>${t("acc.sub")}</p></div>
+
+      <div class="grid cols-2 acc-grid">
+        <div class="card">
+          <div class="row" style="gap:16px;align-items:center">
+            <div class="acc-avatar">${U.escapeHtml(initial)}</div>
+            <div style="min-width:0">
+              <div class="small muted" style="text-transform:uppercase;font-weight:700">${t("acc.profile")}</div>
+              <h3 style="margin:2px 0">${U.escapeHtml(name || "—")}</h3>
+              <div class="small muted" style="word-break:break-all">${U.escapeHtml(email)}</div>
+            </div>
+          </div>
+          <p class="small muted mt-2">${t("acc.profileSub")}</p>
+          <div class="field"><label>${t("acc.name")}</label>
+            <input class="input" id="accName" value="${U.escapeHtml(name)}" placeholder="${t("acc.namePh")}"></div>
+          <button class="btn btn-primary btn-block" id="accSaveProfile">${t("acc.saveProfile")}</button>
+        </div>
+
+        <div class="card">
+          <div class="small muted" style="text-transform:uppercase;font-weight:700">${t("acc.security")}</div>
+          <h3>${t("acc.security")}</h3>
+          <p class="small">${t("acc.securitySub")}</p>
+
+          <div class="field"><label>${t("acc.email")}</label>
+            <input class="input" id="accEmail" type="email" value="${U.escapeHtml(email)}" placeholder="${t("acc.emailPh")}">
+            <div class="hint">${t("acc.changeEmailHint")}</div></div>
+          <div class="row wrap">
+            <button class="btn btn-soft btn-sm" id="accSaveEmail">${t("acc.changeEmail")}</button>
+            <button class="btn btn-ghost btn-sm" id="accForgot">${t("acc.forgotSend")}</button>
+          </div>
+
+          <div style="height:1px;background:var(--line);margin:20px 0"></div>
+
+          <div class="field"><label>${t("acc.newPassword")}</label>
+            <input class="input" id="accPass1" type="password" autocomplete="new-password" placeholder="${t("acc.newPasswordPh")}"></div>
+          <div class="field"><label>${t("acc.repeatPassword")}</label>
+            <input class="input" id="accPass2" type="password" autocomplete="new-password" placeholder="${t("acc.repeatPassword")}"></div>
+          <button class="btn btn-primary btn-block" id="accSavePass">${t("acc.changePassword")}</button>
+        </div>
+
+        <div class="card">
+          <div class="small muted" style="text-transform:uppercase;font-weight:700">${t("acc.plan")}</div>
+          <h3>${t("acc.plan")}</h3>
+          <p class="small">${t("acc.planSub")}</p>
+          <div class="acc-row"><span class="muted">${t("acc.planName")}</span><span class="badge ok">${t("acc.planFree")}</span></div>
+          <div class="acc-row"><span class="muted">${t("acc.memberSince")}</span><strong>${U.escapeHtml(created)}</strong></div>
+          <div class="acc-row"><span class="muted">${t("acc.dataCount")}</span><strong>${state.products.length} · ${state.categories.length} · ${state.orders.length}</strong></div>
+          <div class="acc-row"><span class="muted">${t("acc.dataCountSub")}</span></div>
+          <p class="small muted mt-2">${t("acc.exportSub")}</p>
+          <button class="btn btn-soft btn-block" id="accExport">${t("acc.export")}</button>
+        </div>
+
+        <div class="card" style="border-color:var(--danger)">
+          <div class="small" style="text-transform:uppercase;font-weight:700;color:var(--danger)">${t("acc.danger")}</div>
+          <h3 style="color:var(--danger)">${t("acc.deleteTitle")}</h3>
+          <p class="small">${t("acc.deleteText")}</p>
+          <button class="btn btn-danger btn-block" id="accDelete">${t("acc.deleteBtn")}</button>
+          <button class="btn btn-ghost btn-block mt-2" id="accSignOut">${t("acc.signOut")}</button>
+        </div>
+      </div>`;
+  }
+
+  function bindAccount() {
+    const u = state.user || {};
+
+    $("#accSaveProfile").addEventListener("click", async () => {
+      const name = $("#accName").value.trim();
+      if (!name) return toast(t("common.required"), "error");
+      try {
+        state.meta = await S.updateProfile({ full_name: name });
+        const top = $("#topUserName");
+        if (top) top.textContent = name;
+        toast(t("acc.saved"));
+      } catch (e) { toast((e && e.message) || t("common.error"), "error"); }
+    });
+
+    $("#accSaveEmail").addEventListener("click", async () => {
+      const email = $("#accEmail").value.trim();
+      if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return toast(t("common.required"), "error");
+      if (email === u.email) return toast(t("acc.emailChanged"));
+      try {
+        const r = await S.updateEmail(email);
+        toast(r && r.pending ? t("acc.emailPending") : t("acc.emailChanged"));
+      } catch (e) { toast((e && e.message) || t("common.error"), "error"); }
+    });
+
+    $("#accForgot").addEventListener("click", async () => {
+      try { await S.sendPasswordReset(u.email || $("#accEmail").value.trim()); toast(t("acc.forgotSent")); }
+      catch (e) { toast((e && e.message) || t("common.error"), "error"); }
+    });
+
+    $("#accSavePass").addEventListener("click", async () => {
+      const a = $("#accPass1").value, b = $("#accPass2").value;
+      if (a.length < 6) return toast(t("acc.passwordShort"), "error");
+      if (a !== b) return toast(t("acc.passwordMismatch"), "error");
+      try {
+        await S.updatePassword(a);
+        $("#accPass1").value = ""; $("#accPass2").value = "";
+        toast(t("acc.passwordChanged"));
+      } catch (e) { toast((e && e.message) || t("common.error"), "error"); }
+    });
+
+    $("#accExport").addEventListener("click", async () => {
+      try {
+        const data = await S.exportData(state.business.id);
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "catalogo-wha-" + (state.business.slug || "datos") + ".json";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+        toast(t("acc.saved"));
+      } catch (e) { toast((e && e.message) || t("common.error"), "error"); }
+    });
+
+    $("#accDelete").addEventListener("click", () => {
+      openModal(t("acc.deleteConfirmTitle"), `
+        <p>${t("acc.deleteConfirmText")}</p>
+        <div class="field"><input class="input" id="delWord" placeholder="${t("acc.deleteConfirmPh")}"></div>
+        <div class="row" style="justify-content:flex-end">
+          <button class="btn btn-ghost" data-close>${t("common.cancel")}</button>
+          <button class="btn btn-danger" id="delGo">${t("acc.deleteBtn")}</button>
+        </div>`);
+      $("#delGo").addEventListener("click", async () => {
+        const expected = t("acc.deleteConfirmPh");
+        if (($("#delWord").value || "").trim().toUpperCase() !== expected.toUpperCase()) {
+          return toast(t("acc.deleteConfirmText"), "error");
+        }
+        try {
+          await S.deleteBusinessData(state.business.id);
+          closeModal();
+          toast(t("acc.deleteDone"));
+          setTimeout(async () => { await S.signOut(); location.href = "/index.html"; }, 900);
+        } catch (e) { toast((e && e.message) || t("common.error"), "error"); }
+      });
+    });
+
+    $("#accSignOut").addEventListener("click", async () => {
+      if (!confirm(t("common.logoutConfirm"))) return;
+      await S.signOut();
+      location.href = "/index.html";
+    });
+  }
+
+  /* ==================== VISTA: ASISTENTE DE CONFIGURACIÓN ==================== */
+  const WA_CODES = ["212", "213", "216", "221", "222", "971", "966", "20", "90", "34", "33", "32", "39", "49", "44", "1"];
+
+  function splitWa(num) {
+    const digits = (num || "").replace(/\D/g, "");
+    for (const c of WA_CODES) if (digits.startsWith(c) && digits.length > c.length) return { cc: c, rest: digits.slice(c.length) };
+    return { cc: "212", rest: digits };
+  }
+
+  function setupInit() {
+    const b = state.business;
+    const w = splitWa(b.whatsapp);
+    setupDraft = {
+      name: b.name || "", description: b.description || "", country: b.country || "", city: b.city || "",
+      waCountry: w.cc, waNumber: w.rest,
+      brandColor: b.brand_color || window.APP_CONFIG.defaultBrandColor,
+      slug: b.slug || "", delivery: b.delivery || "", payments: b.payments || ""
+    };
+    setupLogo = b.logo_url || "";
+    setupStep = 0;
+  }
+
+  function setupPatch() {
+    if (setupStep === 0) return { name: setupDraft.name, description: setupDraft.description, country: setupDraft.country, city: setupDraft.city };
+    if (setupStep === 1) return { whatsapp: setupDraft.waCountry + setupDraft.waNumber.replace(/\D/g, "") };
+    if (setupStep === 2) return { brand_color: setupDraft.brandColor, logo_url: setupLogo };
+    if (setupStep === 3) return { slug: setupDraft.slug };
+    if (setupStep === 4) return { delivery: setupDraft.delivery, payments: setupDraft.payments };
+    return null;
+  }
+
+  async function markOnboardingDone() {
+    try { state.meta = await S.updateProfile({ onboarding_done: true }); }
+    catch (e) { state.meta = Object.assign({}, state.meta, { onboarding_done: true }); }
+  }
+
+  function setupStepBusiness() {
+    return `
+      <div class="field"><label>${t("setup.s1.name")}</label>
+        <input class="input" id="stName" value="${U.escapeHtml(setupDraft.name)}" placeholder="${t("setup.s1.namePh")}"></div>
+      <div class="field"><label>${t("setup.s1.desc")}</label>
+        <textarea class="textarea" id="stDesc" placeholder="${t("setup.s1.descPh")}">${U.escapeHtml(setupDraft.description)}</textarea></div>
+      <div class="grid cols-2">
+        <div class="field"><label>${t("setup.s1.country")}</label>
+          <input class="input" id="stCountry" value="${U.escapeHtml(setupDraft.country)}"></div>
+        <div class="field"><label>${t("setup.s1.city")}</label>
+          <input class="input" id="stCity" value="${U.escapeHtml(setupDraft.city)}"></div>
+      </div>`;
+  }
+
+  function setupStepWhatsapp() {
+    const codes = [["212", "Marruecos +212"], ["213", "Algérie +213"], ["216", "Tunisie +216"],
+      ["221", "Sénégal +221"], ["222", "Mauritanie +222"], ["34", "España +34"], ["33", "France +33"],
+      ["32", "Belgique +32"], ["39", "Italia +39"], ["49", "Deutschland +49"], ["44", "UK +44"],
+      ["1", "US / CA +1"], ["20", "مصر +20"], ["966", "السعودية +966"], ["971", "الإمارات +971"], ["90", "Türkiye +90"]];
+    return `
+      <div class="grid cols-2">
+        <div class="field"><label>${t("setup.s2.country")}</label><select class="select" id="stWaCc">
+          ${codes.map(([v, l]) => `<option value="${v}" ${setupDraft.waCountry === v ? "selected" : ""}>${l}</option>`).join("")}
+        </select></div>
+        <div class="field"><label>${t("setup.s2.number")}</label>
+          <input class="input" id="stWaNum" value="${U.escapeHtml(setupDraft.waNumber)}" placeholder="${t("setup.s2.numberPh")}"></div>
+      </div>
+      <div class="card" style="border-color:var(--wa);margin-top:6px">
+        <div class="small" style="color:var(--wa-dark);text-transform:uppercase;font-weight:700">${t("setup.s2.preview")}</div>
+        <h3 id="stWaShown">+${U.escapeHtml(setupDraft.waCountry + setupDraft.waNumber.replace(/\D/g, ""))}</h3>
+      </div>`;
+  }
+
+  function setupStepBrand() {
+    const initial = (setupDraft.name || "C").charAt(0).toUpperCase();
+    return `
+      <div class="row" style="gap:18px;align-items:center">
+        <div class="setup-logo" id="stLogoBox">${setupLogo
+          ? `<img src="${U.escapeHtml(setupLogo)}" alt="">`
+          : `<span>${U.escapeHtml(initial)}</span>`}</div>
+        <div style="min-width:0">
+          <label style="font-weight:650;font-size:.9rem">${t("setup.s3.logo")}</label>
+          <div class="row wrap mt-1">
+            <button class="btn btn-soft btn-sm" id="stLogoPick">${t("setup.s3.logoPick")}</button>
+            <button class="btn btn-ghost btn-sm" id="stLogoRm">${t("setup.s3.logoRemove")}</button>
+          </div>
+          <div class="hint">${t("setup.s3.logoHint")}</div>
+        </div>
+      </div>
+      <div class="field mt-3" style="max-width:280px"><label>${t("setup.s3.color")}</label>
+        <input class="input" id="stColor" type="color" value="${U.escapeHtml(setupDraft.brandColor)}" style="height:52px;padding:6px"></div>`;
+  }
+
+  function setupStepLink() {
+    const base = (window.APP_CONFIG.publicDomain || location.host).replace(/^https?:\/\//, "");
+    return `
+      <div class="field"><label>${t("setup.s4.slug")}</label>
+        <div class="row" style="gap:0;flex-wrap:nowrap">
+          <span class="input setup-slug-prefix">${U.escapeHtml(base + (window.APP_CONFIG.catalogPath || "/catalogo.html") + "?b=")}</span>
+          <input class="input setup-slug-input" id="stSlug" value="${U.escapeHtml(setupDraft.slug)}">
+        </div>
+        <div class="hint" id="stSlugMsg"></div>
+      </div>`;
+  }
+
+  function setupStepSales() {
+    const dHas = (k) => (setupDraft.delivery || "").indexOf("[" + k + "]") >= 0;
+    const pHas = (k) => (setupDraft.payments || "").indexOf("[" + k + "]") >= 0;
+    const opt = (cls, k, ico, label, on) =>
+      `<label class="opt-row"><input type="checkbox" class="${cls}" value="${k}" ${on ? "checked" : ""}>
+        <span class="opt-ico">${ico}</span><span>${label}</span></label>`;
+    return `
+      <div class="small muted" style="text-transform:uppercase;font-weight:700">${t("setup.s5.delivery")}</div>
+      <div class="opt-list mt-1 mb-3">
+        ${opt("stDlv", "pickup", "🏬", t("cfg.pickup"), dHas("pickup"))}
+        ${opt("stDlv", "local", "🛵", t("cfg.localDelivery"), dHas("local"))}
+        ${opt("stDlv", "shipping", "📦", t("cfg.shipping"), dHas("shipping"))}
+        ${opt("stDlv", "meetup", "🤝", t("cfg.meetup"), dHas("meetup"))}
+      </div>
+      <div class="small muted" style="text-transform:uppercase;font-weight:700">${t("setup.s5.payments")}</div>
+      <div class="opt-list mt-1">
+        ${opt("stPay", "cash", "💵", t("cfg.cash"), pHas("cash"))}
+        ${opt("stPay", "transfer", "🏦", t("cfg.bankTransfer"), pHas("transfer"))}
+        ${opt("stPay", "card", "💳", t("cfg.cardOnDelivery"), pHas("card"))}
+        ${opt("stPay", "online", "🌐", t("cfg.onlinePayment"), pHas("online"))}
+        ${opt("stPay", "wallet", "📱", t("cfg.mobileWallet"), pHas("wallet"))}
+      </div>`;
+  }
+
+  function viewSetupDone() {
+    const url = U.catalogUrl(state.business.slug);
+    return `
+      <div class="setup-wrap">
+        <div class="setup-card center">
+          <div class="setup-done-ico">✓</div>
+          <h2>${t("setup.done.title")}</h2>
+          <p class="small muted" style="margin-top:8px">${t("setup.done.sub")}</p>
+          <div class="row wrap mt-3" style="justify-content:center">
+            <a class="btn btn-primary" href="#product/new">+ ${t("setup.done.product")}</a>
+            <a class="btn btn-soft" target="_blank" href="${U.escapeHtml(url)}">${t("setup.done.catalog")} ↗</a>
+            <a class="btn btn-ghost" href="#home">${t("setup.done.panel")}</a>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function viewSetup() {
+    if (!setupDraft) setupInit();
+    if (setupStep >= SETUP_TOTAL) return viewSetupDone();
+
+    const steps = [
+      { ico: "🏪", title: t("setup.s1.title"), sub: t("setup.s1.sub"), html: setupStepBusiness() },
+      { ico: "💬", title: t("setup.s2.title"), sub: t("setup.s2.sub"), html: setupStepWhatsapp() },
+      { ico: "🎨", title: t("setup.s3.title"), sub: t("setup.s3.sub"), html: setupStepBrand() },
+      { ico: "🔗", title: t("setup.s4.title"), sub: t("setup.s4.sub"), html: setupStepLink() },
+      { ico: "🚚", title: t("setup.s5.title"), sub: t("setup.s5.sub"), html: setupStepSales() }
+    ];
+    const cur = steps[setupStep];
+    const isLast = setupStep === steps.length - 1;
+    const bars = steps.map((s, i) =>
+      `<i class="${i < setupStep ? "done" : i === setupStep ? "active" : ""}"></i>`).join("");
+
+    return `
+      <div class="setup-wrap">
+        <div class="page-head center" style="text-align:center">
+          <h1>${t("setup.title")}</h1><p>${t("setup.sub")}</p>
+        </div>
+        <div class="setup-bar" role="progressbar" aria-label="${t("setup.progress")}">${bars}</div>
+        <div class="small muted center mb-2">${t("setup.step").replace("{n}", setupStep + 1).replace("{total}", steps.length)}</div>
+
+        <div class="setup-card">
+          <div class="setup-ico">${cur.ico}</div>
+          <h2>${cur.title}</h2>
+          <p class="small muted" style="margin-top:6px">${cur.sub}</p>
+          <div class="mt-3">${cur.html}</div>
+          <div class="setup-actions">
+            ${setupStep > 0 ? `<button class="btn btn-ghost" id="stBack">‹ ${t("setup.back")}</button>` : ""}
+            <button class="btn btn-ghost btn-sm" id="stSkip">${t("setup.skip")}</button>
+            <div class="spacer"></div>
+            <button class="btn btn-primary" id="stNext">${isLast ? t("setup.finish") : t("setup.next")} →</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function bindSetup() {
+    if (setupStep >= SETUP_TOTAL) return;
+
+    function capture() {
+      const val = (id) => { const el = $("#" + id); return el ? el.value : null; };
+      if ($("#stName")) setupDraft.name = val("stName").trim();
+      if ($("#stDesc")) setupDraft.description = val("stDesc").trim();
+      if ($("#stCountry")) setupDraft.country = val("stCountry").trim();
+      if ($("#stCity")) setupDraft.city = val("stCity").trim();
+      if ($("#stWaCc")) setupDraft.waCountry = val("stWaCc");
+      if ($("#stWaNum")) setupDraft.waNumber = val("stWaNum").replace(/[^\d\s]/g, "");
+      if ($("#stColor")) setupDraft.brandColor = val("stColor");
+      if ($("#stSlug")) setupDraft.slug = val("stSlug").trim();
+      if ($(".stDlv")) setupDraft.delivery = $$(".stDlv:checked").map((c) => "[" + c.value + "]").join("");
+      if ($(".stPay")) setupDraft.payments = $$(".stPay:checked").map((c) => "[" + c.value + "]").join("");
+    }
+
+    const cc = $("#stWaCc"), num = $("#stWaNum"), shown = $("#stWaShown");
+    if (cc && num && shown) {
+      const sync = () => { shown.textContent = "+" + cc.value + num.value.replace(/\D/g, ""); };
+      cc.addEventListener("change", sync);
+      num.addEventListener("input", sync);
+    }
+
+    const lp = $("#stLogoPick");
+    if (lp) lp.addEventListener("click", () => pickImages({ onPick: (items) => {
+      if (!items.length) return;
+      setupLogo = items[0].url;
+      $("#stLogoBox").innerHTML = `<img src="${U.escapeHtml(setupLogo)}" alt="">`;
+    } }));
+
+    const lr = $("#stLogoRm");
+    if (lr) lr.addEventListener("click", () => {
+      setupLogo = "";
+      $("#stLogoBox").innerHTML = `<span>${U.escapeHtml((setupDraft.name || "C").charAt(0).toUpperCase())}</span>`;
+    });
+
+    const slug = $("#stSlug");
+    if (slug) {
+      const msg = $("#stSlugMsg");
+      let timer;
+      slug.addEventListener("input", () => {
+        slug.value = S.slugify(slug.value);
+        msg.textContent = t("setup.s4.checking");
+        clearTimeout(timer);
+        timer = setTimeout(async () => {
+          if (!slug.value) { msg.textContent = ""; return; }
+          if (slug.value === state.business.slug) { msg.textContent = "✓ " + t("setup.s4.free"); return; }
+          try {
+            const ok = await S.slugAvailable(slug.value);
+            msg.textContent = ok ? "✓ " + t("setup.s4.free") : t("setup.s4.taken");
+          } catch (e) { msg.textContent = ""; }
+        }, 420);
+      });
+    }
+
+    $("#stNext").addEventListener("click", async () => {
+      capture();
+      if (setupStep === 0 && !setupDraft.name) return toast(t("common.required"), "error");
+      if (setupStep === 3 && !setupDraft.slug) return toast(t("common.required"), "error");
+      if (setupStep === 3 && setupDraft.slug !== state.business.slug) {
+        try {
+          const ok = await S.slugAvailable(setupDraft.slug);
+          if (!ok) return toast(t("setup.s4.taken"), "error");
+        } catch (e) { /* continuar */ }
+      }
+      const patch = setupPatch();
+      if (patch) {
+        try { await S.updateBusiness(state.business.id, patch); await loadBusiness(); }
+        catch (e) { return toast((e && e.message) || t("common.error"), "error"); }
+      }
+      if (setupStep < SETUP_TOTAL - 1) { setupStep++; route(); }
+      else { await markOnboardingDone(); setupStep = SETUP_TOTAL; route(); }
+    });
+
+    const back = $("#stBack");
+    if (back) back.addEventListener("click", () => { capture(); setupStep--; route(); });
+
+    $("#stSkip").addEventListener("click", async () => {
+      if (!confirm(t("setup.skipConfirm"))) return;
+      await markOnboardingDone();
+      toast(t("acc.saved"));
+      go("home");
+    });
+  }
+
   /* ==================== ARRANQUE ==================== */
   async function loadBusiness() {
     state.business = await S.myBusiness();
@@ -1049,6 +1477,8 @@
     if (!user) { location.href = "/login.html"; return; }
     await loadBusiness();
     if (!state.business) { location.href = "/login.html"; return; }
+    state.user = user;
+    try { state.meta = (await S.userMeta()) || {}; } catch (e) { state.meta = {}; }
     ready = true;
 
     const email = (user && user.email) || "";
@@ -1056,7 +1486,7 @@
     const sideEmail = $("#sideUserEmail");
     if (sideEmail) sideEmail.textContent = email;
     $("#topBizName").textContent = state.business.name;
-    $("#topUserName").textContent = email || state.business.name;
+    $("#topUserName").textContent = state.meta.full_name || email || state.business.name;
     const av = $("#topAvatar");
     if (av) av.textContent = (email.charAt(0) || "U").toUpperCase();
     const viewBtn = $("#viewCatalogBtn");
@@ -1073,7 +1503,10 @@
     // Navegación del menú lateral
     $$(".side-link[data-route]").forEach((b) =>
       b.addEventListener("click", () => {
-        go(b.getAttribute("data-route"));
+        const r = b.getAttribute("data-route");
+        // Abrir el asistente desde el menú reinicia el recorrido
+        if (r === "setup") { setupDraft = null; setupStep = 0; }
+        go(r);
         if (window.innerWidth <= 980) $("#sidebar").classList.remove("open");
       })
     );
@@ -1093,6 +1526,12 @@
       $$(".side-link[data-route]").forEach(() => {});
       route();
     });
+
+    // Primer acceso: abrir el asistente de configuración si no se ha completado
+    const parts = parseRoute();
+    if (state.meta.onboarding_done !== true && (!parts[0] || parts[0] === "home")) {
+      location.hash = "setup";
+    }
     route();
   }
 
