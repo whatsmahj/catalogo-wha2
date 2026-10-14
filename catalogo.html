@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catálogo — Catalogo Wha</title>
+<meta name="theme-color" content="#581a80">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/assets/img/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/index.html" id="catBrand"><span class="logo" id="catLogo">CW</span><span id="catBrandName">Catalogo Wha</span></a>
+    <div class="header-actions">
+      <div class="lang" data-lang-root></div>
+      <a class="btn btn-wa btn-sm" id="catWaTop" target="_blank" rel="noopener" href="#">
+        <span data-i18n="catalog.callWa">Escríbenos por WhatsApp</span>
+      </a>
+      <button class="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<div class="mobile-menu" id="mobileMenu">
+  <nav class="nav">
+    <a href="#productos" data-i18n="catalog.products">Productos</a>
+    <a href="/index.html" data-i18n="nav.home">Inicio</a>
+  </nav>
+  <div class="divider"></div>
+  <p class="small muted" data-i18n="lang.label">Idioma</p>
+  <div class="lang-inline" data-lang-inline></div>
+</div>
+
+<!-- Encabezado del negocio -->
+<section class="catalog-hero" id="catalogHero">
+  <div class="container">
+    <div class="row wrap">
+      <div id="heroLogo"></div>
+      <div>
+        <h1 id="heroName">—</h1>
+        <p id="heroDesc"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Barra de categorías -->
+<div class="catalog-toolbar">
+  <div class="container">
+    <div class="row wrap" style="gap:12px">
+      <div class="chips" id="catChips"></div>
+      <div class="spacer"></div>
+      <input class="input" id="catSearch" type="search" style="max-width:220px" data-i18n-placeholder="catalog.searchPh" placeholder="Buscar producto…">
+    </div>
+  </div>
+</div>
+
+<main class="container" id="productos" style="padding-top:26px;padding-bottom:80px">
+  <div id="catalogBody"><div class="empty"><div class="ico">⏳</div><p data-i18n="common.loading">Cargando…</p></div></div>
+</main>
+
+<footer class="site-footer" style="padding:32px 0">
+  <div class="container row wrap">
+    <span class="small" style="color:#cfc9dd">© <span id="year"></span> <span id="footBiz">—</span></span>
+    <div class="spacer"></div>
+    <a class="small" href="/index.html" data-i18n="catalog.poweredBy" style="color:#c4b5fd">Creado con Catalogo Wha</a>
+  </div>
+</footer>
+
+<!-- Botón carrito -->
+<button class="cart-fab hidden" id="cartFab">🛒 <span data-i18n="catalog.cart">Mi pedido</span> <span class="count" id="cartCount">0</span></button>
+
+<!-- Carrito -->
+<div class="drawer" id="cartDrawer">
+  <div class="backdrop" data-cart-close></div>
+  <div class="panel">
+    <header>
+      <strong data-i18n="catalog.cart">Mi pedido</strong>
+      <div class="spacer"></div>
+      <button class="btn btn-ghost btn-sm" data-cart-close data-i18n="common.close">Cerrar</button>
+    </header>
+    <div class="content" id="cartContent"></div>
+    <footer>
+      <div class="row mb-2"><strong data-i18n="catalog.subtotal">Total</strong><div class="spacer"></div><strong id="cartTotal">0</strong></div>
+      <div class="field"><label data-i18n="catalog.name">Tu nombre</label><input class="input" id="custName" data-i18n-placeholder="catalog.namePh" placeholder="¿Cómo te llamas?"></div>
+      <div class="field"><label data-i18n="catalog.note">Nota (opcional)</label><textarea class="textarea" id="custNote" style="min-height:70px" data-i18n-placeholder="catalog.notePh" placeholder="Dirección, horario o comentarios…"></textarea></div>
+      <button class="btn btn-wa btn-block" id="sendOrder" data-i18n="catalog.sendOrder">Enviar pedido por WhatsApp</button>
+    </footer>
+  </div>
+</div>
+
+<!-- Chatbot -->
+<button class="chat-fab" id="chatFab" aria-label="Chat">💬</button>
+<div class="chat-panel" id="chatPanel">
+  <header>
+    <div class="avatar">🤖</div>
+    <div>
+      <div class="chat-title" data-i18n="chat.title">Asistente de Catalogo Wha</div>
+      <div class="chat-sub small" style="color:rgba(255,255,255,.8)" data-i18n="chat.online">Normalmente responde al instante</div>
+    </div>
+  </header>
+  <div class="body chat-body"></div>
+  <div class="quick chat-quick"></div>
+  <div class="composer">
+    <input class="chat-input" type="text" data-i18n-placeholder="chat.placeholder" placeholder="Escribe tu pregunta…">
+    <button class="btn btn-primary btn-sm chat-send" data-i18n="chat.send">Enviar</button>
+  </div>
+</div>
+
+<div class="pwa-banner" id="pwaBanner">
+  <div style="flex:1"><strong data-i18n="pwa.install">Instalar Catalogo Wha</strong>
+    <div class="small" style="opacity:.8" data-i18n="pwa.installText">Instala la app en tu móvil para acceso rápido.</div></div>
+  <button class="btn btn-primary btn-sm pwa-install" data-i18n="pwa.installBtn">Instalar</button>
+  <button class="btn btn-ghost btn-sm pwa-later" data-i18n="pwa.later">Ahora no</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/js/config.js"></script>
+<script src="/assets/js/i18n.js"></script>
+<script src="/assets/js/store.js"></script>
+<script src="/assets/js/common.js"></script>
+<script src="/assets/js/catalog.js"></script>
+</body>
+</html>

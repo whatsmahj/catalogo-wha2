@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel — Catalogo Wha</title>
+<meta name="theme-color" content="#581a80">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/assets/img/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+
+<div class="dash">
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="/index.html"><span class="logo">CW</span><span>Catalogo&nbsp;<b>Wha</b></span></a>
+    <div class="who small muted" style="padding:0 10px 8px">
+      <span id="sideBizName">—</span>
+    </div>
+
+    <div class="group-label" data-i18n="nav.home">Principal</div>
+    <button class="side-link" data-route="home"><span class="ic">🏠</span><span data-i18n="dash.home">Inicio</span></button>
+    <button class="side-link" data-route="orders"><span class="ic">🧾</span><span data-i18n="dash.orders">Pedidos</span></button>
+
+    <div class="group-label" data-i18n="nav.catalog">Catálogo</div>
+    <button class="side-link" data-route="products"><span class="ic">📦</span><span data-i18n="dash.products">Productos</span></button>
+    <button class="side-link" data-route="categories"><span class="ic">🗂️</span><span data-i18n="dash.categories">Categorías</span></button>
+    <button class="side-link" data-route="library"><span class="ic">🖼️</span><span data-i18n="dash.library">Biblioteca</span></button>
+
+    <div class="group-label" data-i18n="dash.business">Mi negocio</div>
+    <button class="side-link" data-route="config"><span class="ic">⚙️</span><span data-i18n="dash.config">Configurar negocio</span></button>
+
+    <div class="group-label" data-i18n="dash.session">Sesión</div>
+    <button class="side-link" id="logoutBtn"><span class="ic">⎋</span><span data-i18n="dash.logout">Cerrar sesión</span></button>
+    <div class="group-label" data-i18n="lang.label">Idioma</div>
+    <div class="lang-inline" data-lang-inline style="padding:0 8px"></div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="dash-main">
+    <div class="dash-top">
+      <button class="btn btn-ghost btn-sm" id="sideToggle" style="display:none">☰</button>
+      <div class="who small muted">
+        <span id="topBizName">—</span>
+        <b id="topUserName">—</b>
+      </div>
+      <div class="spacer"></div>
+      <div class="lang" data-lang-root></div>
+      <a class="btn btn-primary btn-sm" id="viewCatalogBtn" target="_blank" href="#">
+        <span data-i18n="dash.viewCatalog">Ver catálogo</span> ↗
+      </a>
+    </div>
+
+    <div id="view"><div class="empty"><div class="ico">⏳</div><p data-i18n="dash.loading">Cargando…</p></div></div>
+  </main>
+</div>
+
+<!-- Modal genérico -->
+<div class="drawer" id="modal">
+  <div class="backdrop" data-close></div>
+  <div class="panel" style="inset-inline-start:auto">
+    <header>
+      <strong id="modalTitle">—</strong>
+      <div class="spacer"></div>
+      <button class="btn btn-ghost btn-sm" data-close data-i18n="common.close">Cerrar</button>
+    </header>
+    <div class="content" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="pwa-banner" id="pwaBanner">
+  <div style="flex:1">
+    <strong data-i18n="pwa.install">Instalar Catalogo Wha</strong>
+    <div class="small" style="opacity:.8" data-i18n="pwa.installText">Instala la app en tu móvil para acceso rápido.</div>
+  </div>
+  <button class="btn btn-primary btn-sm pwa-install" data-i18n="pwa.installBtn">Instalar</button>
+  <button class="btn btn-ghost btn-sm pwa-later" data-i18n="pwa.later">Ahora no</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/js/config.js"></script>
+<script src="/assets/js/i18n.js"></script>
+<script src="/assets/js/store.js"></script>
+<script src="/assets/js/common.js"></script>
+<script src="/assets/js/dashboard.js"></script>
+</body>
+</html>

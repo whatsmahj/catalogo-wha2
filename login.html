@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iniciar sesión — Catalogo Wha</title>
+<meta name="theme-color" content="#581a80">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/assets/img/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/index.html"><span class="logo">CW</span><span>Catalogo&nbsp;<b>Wha</b></span></a>
+    <div class="header-actions">
+      <div class="lang" data-lang-root></div>
+      <a class="btn btn-ghost btn-sm desktop-only" href="/index.html">← <span data-i18n="auth.backHome">Volver al inicio</span></a>
+      <button class="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<div class="mobile-menu" id="mobileMenu">
+  <div class="actions">
+    <a class="btn btn-ghost btn-block" href="/index.html" data-i18n="auth.backHome">Volver al inicio</a>
+  </div>
+  <div class="divider"></div>
+  <p class="small muted" data-i18n="lang.label">Idioma</p>
+  <div class="lang-inline" data-lang-inline></div>
+</div>
+
+<div class="auth-wrap">
+  <!-- Ilustración -->
+  <div class="auth-art">
+    <div class="inner center">
+      <div class="art-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div>
+            <div class="small muted" data-i18n="hero.mock.business">Tu negocio</div>
+            <strong data-i18n="auth.art.workspace">Tu espacio de trabajo</strong>
+          </div>
+          <span class="badge info">Catálogo</span>
+        </div>
+        <div style="height:90px;border-radius:12px;background:linear-gradient(135deg,#e9d5ff,#c4b5fd)"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+          <div style="height:70px;border-radius:10px;background:var(--brand-050)"></div>
+          <div style="height:70px;border-radius:10px;background:var(--brand-050)"></div>
+        </div>
+      </div>
+      <h2 class="mt-3" data-i18n="auth.art.title">Administra tu catálogo.</h2>
+      <p data-i18n="auth.art.sub">Vuelve a tu catálogo y sigue atendiendo a tus clientes.</p>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="auth-panel">
+    <div class="auth-card">
+      <div class="tabs">
+        <button id="tabLogin" class="active" data-i18n="auth.signIn">Iniciar sesión</button>
+        <button id="tabRegister" data-i18n="auth.createFree">Crear cuenta gratis</button>
+      </div>
+
+      <h2 id="authTitle" data-i18n="auth.login.title">Iniciar sesión</h2>
+      <p class="small" id="authSub" data-i18n="auth.login.sub">Gestiona tu catálogo y los pedidos de tu negocio.</p>
+
+      <div id="authAlert" class="alert hidden"></div>
+
+      <form id="authForm" novalidate>
+        <div class="field" id="fieldBusiness" style="display:none">
+          <label data-i18n="auth.business">Nombre del negocio</label>
+          <input class="input" id="business" type="text" placeholder="Ej. Mi Tienda">
+        </div>
+        <div class="field" id="fieldSlug" style="display:none">
+          <label data-i18n="auth.slug">Enlace de tu catálogo</label>
+          <div class="row" style="gap:0">
+            <span class="input" style="width:auto;border-radius:10px 0 0 10px;background:var(--bg);color:var(--ink-3);white-space:nowrap" id="slugPrefix">catalogowha.app/catalogo.html?b=</span>
+            <input class="input" id="slug" type="text" placeholder="mi-tienda" style="border-radius:0 10px 10px 0;border-inline-start:0">
+          </div>
+          <div class="hint" data-i18n="prod.urlHint">Se genera automáticamente desde el nombre, siempre en minúsculas.</div>
+        </div>
+        <div class="field">
+          <label data-i18n="auth.email">Correo electrónico</label>
+          <input class="input" id="email" type="email" autocomplete="email" placeholder="tu@correo.com">
+        </div>
+        <div class="field">
+          <div class="help-row">
+            <label data-i18n="auth.password">Contraseña</label>
+            <a href="#" class="small" id="forgot" data-i18n="auth.forgot">¿Olvidaste tu contraseña?</a>
+          </div>
+          <input class="input" id="password" type="password" autocomplete="current-password" placeholder="••••••••">
+        </div>
+        <button class="btn btn-primary btn-block" id="submitBtn" type="submit" data-i18n="auth.submit.login">Ingresar</button>
+      </form>
+
+      <p class="center small mt-2">
+        <span id="switchText" data-i18n="auth.noAccount">¿Aún no tienes una cuenta?</span>
+        <a href="#" id="switchLink" data-i18n="auth.createFree">Crear cuenta gratis</a>
+      </p>
+
+      <p class="center small muted mt-3">
+        <span data-i18n="auth.needHelp">¿Necesitas ayuda?</span>
+        <a href="mailto:contact@clickpubli.com" data-i18n="auth.writeUs">Escríbenos</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/js/config.js"></script>
+<script src="/assets/js/i18n.js"></script>
+<script src="/assets/js/store.js"></script>
+<script src="/assets/js/common.js"></script>
+<script src="/assets/js/auth.js"></script>
+</body>
+</html>
