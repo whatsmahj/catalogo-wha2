@@ -16,6 +16,7 @@
   let filterCat = "";
   let filterProd = "";
   let filterServ = "";
+  let typeFilter = "";
   let search = "";
   let sortBy = "default";
   /* Precio efectivo (el que paga el cliente): oferta si la hay. */
@@ -75,6 +76,15 @@
     if (selP) selP.addEventListener("change", (e) => { filterProd = e.target.value; renderProducts(); });
     const selS = $("#catSelectServ");
     if (selS) selS.addEventListener("change", (e) => { filterServ = e.target.value; renderProducts(); });
+    const selT = $("#typeSelect");
+    if (selT) selT.addEventListener("change", (e) => {
+      typeFilter = e.target.value;
+      /* Al cambiar el tipo, se limpian las categorías que ya no aplican. */
+      if (typeFilter === "product") { filterServ = ""; }
+      if (typeFilter === "service") { filterProd = ""; }
+      renderChips();
+      renderProducts();
+    });
     const dIn = $("#custDate");
     if (dIn) dIn.addEventListener("change", checkWorkDay);
     $("#sortSelect").addEventListener("change", (e) => { sortBy = e.target.value; renderProducts(); });
@@ -194,10 +204,11 @@
       if (selS.value !== filterServ) { filterServ = ""; selS.value = ""; }
     }
 
-    /* El selector solo se muestra si el negocio tiene categorías de ese tipo. */
+    /* El selector de categoría se oculta si no hay categorías de ese tipo
+       o si el filtro de Tipo ya excluye ese tipo. */
     const fp = $("#catFilterProd"), fs = $("#catFilterServ");
-    if (fp) fp.classList.toggle("hidden", prod.length === 0);
-    if (fs) fs.classList.toggle("hidden", serv.length === 0);
+    if (fp) fp.classList.toggle("hidden", prod.length === 0 || typeFilter === "service");
+    if (fs) fs.classList.toggle("hidden", serv.length === 0 || typeFilter === "product");
   }
 
   /* Filas de datos de la tarjeta. Son DISTINTAS para productos y servicios:
@@ -230,6 +241,10 @@
   /* ---------- Productos ---------- */
   function renderProducts() {
     let list = products.slice();
+    /* Filtro por tipo: productos, servicios o todo. */
+    if (typeFilter === "product") list = list.filter((p) => p.kind !== "service");
+    else if (typeFilter === "service") list = list.filter((p) => p.kind === "service");
+
     /* Si eliges una categoría, se muestra SOLO ese tipo (productos o servicios),
        nunca los dos mezclados. Con los dos selectores en "Todos" se ve todo. */
     if (filterProd || filterServ) {
