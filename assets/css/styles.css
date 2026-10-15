@@ -418,10 +418,12 @@ td .thumb-sm { width: 44px; height: 44px; border-radius: 10px; object-fit: cover
   margin-top: -6px; border-right: 2px solid var(--ink-3); border-bottom: 2px solid var(--ink-3);
   transform: rotate(45deg); pointer-events: none;
 }
+.cat-search { max-width: 220px; }
 @media (max-width: 560px) {
   .cat-filter { width: 100%; }
   .select-wrap { flex: 1; }
   .cat-select { width: 100%; min-width: 0; }
+  .cat-search { max-width: 100%; width: 100%; }
 }
 .chip { padding: 8px 15px; border-radius: 999px; border: 1px solid var(--line); background: #fff; font-family: var(--font); font-size: .88rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .chip.active { background: var(--brand-600); color: #fff; border-color: var(--brand-600); }

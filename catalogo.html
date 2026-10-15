@@ -77,8 +77,20 @@
           <span class="select-arrow" aria-hidden="true"></span>
         </div>
       </div>
+      <div class="cat-filter">
+        <label class="cat-filter-label" for="sortSelect" data-i18n="catalog.sort">Ordenar</label>
+        <div class="select-wrap">
+          <select class="cat-select" id="sortSelect">
+            <option value="default" data-i18n="catalog.sortDefault">Recomendado</option>
+            <option value="price-asc" data-i18n="catalog.sortPriceAsc">Precio: menor a mayor</option>
+            <option value="price-desc" data-i18n="catalog.sortPriceDesc">Precio: mayor a menor</option>
+            <option value="new" data-i18n="catalog.sortNew">Novedades</option>
+          </select>
+          <span class="select-arrow" aria-hidden="true"></span>
+        </div>
+      </div>
       <div class="spacer"></div>
-      <input class="input" id="catSearch" type="search" style="max-width:220px" data-i18n-placeholder="catalog.searchPh" placeholder="Buscar producto…">
+      <input class="input cat-search" id="catSearch" type="search" data-i18n-placeholder="catalog.searchPh" placeholder="Buscar producto…">
     </div>
   </div>
 </div>

@@ -15,6 +15,7 @@
   let cart = []; // {id, name, price, qty, image}
   let filterCat = "";
   let search = "";
+  let sortBy = "default";
 
   function cartKey() { return CART_KEY + (business ? business.slug : "x"); }
   function loadCart() { try { cart = JSON.parse(localStorage.getItem(cartKey())) || []; } catch (e) { cart = []; } }
@@ -67,6 +68,7 @@
     renderCart();
 
     $("#catSelect").addEventListener("change", (e) => { filterCat = e.target.value; renderProducts(); });
+    $("#sortSelect").addEventListener("change", (e) => { sortBy = e.target.value; renderProducts(); });
     $("#catSearch").addEventListener("input", (e) => { search = e.target.value.toLowerCase(); renderProducts(); });
     $("#cartFab").addEventListener("click", () => $("#cartDrawer").classList.add("open"));
     $$("[data-cart-close]").forEach((b) => b.addEventListener("click", () => $("#cartDrawer").classList.remove("open")));
@@ -168,7 +170,11 @@
     let list = products.slice();
     if (filterCat) list = list.filter((p) => p.category_id === filterCat);
     if (search) list = list.filter((p) => (p.name || "").toLowerCase().includes(search) || (p.description || "").toLowerCase().includes(search));
-    list.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    const effPrice = (p) => Number(p.promo_price || p.price) || 0;
+    if (sortBy === "price-asc") list.sort((a, b) => effPrice(a) - effPrice(b) || (a.sort_order || 0) - (b.sort_order || 0));
+    else if (sortBy === "price-desc") list.sort((a, b) => effPrice(b) - effPrice(a) || (a.sort_order || 0) - (b.sort_order || 0));
+    else if (sortBy === "new") list.sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
+    else list.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
     if (!list.length) {
       $("#catalogBody").innerHTML = `<div class="empty"><div class="ico">📦</div><h3>${t("catalog.noProducts")}</h3></div>`;
