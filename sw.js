@@ -3,8 +3,13 @@
    Estrategia:
    - HTML: network-first (contenido fresco) con fallback a caché.
    - Estáticos (css/js/img): cache-first + actualización en segundo plano.
+
+   IMPORTANTE: al publicar cambios en CSS o JS hay que subir CACHE_VERSION.
+   Si no, el navegador sigue sirviendo los archivos viejos desde caché
+   mientras el HTML sí se actualiza, y la página se rompe.
    =========================================================== */
-const CACHE = "catalogo-wha-v1";
+const CACHE_VERSION = 3;
+const CACHE = "catalogo-wha-v" + CACHE_VERSION;
 const ASSETS = [
   "/",
   "/index.html",
@@ -43,6 +48,11 @@ self.addEventListener("activate", (e) => {
   );
 });
 
+/* Si una página pide "saltar espera", se activa de inmediato. */
+self.addEventListener("message", (e) => {
+  if (e.data === "skip-waiting") self.skipWaiting();
+});
+
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET") return;
@@ -57,19 +67,24 @@ self.addEventListener("fetch", (e) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(req, copy));
         return res;
-      }).catch(() => caches.match(req).then((r) => r || caches.match("/index.html")))
+      }).catch(() =>
+        caches.open(CACHE).then((c) => c.match(req)).then((r) => r || caches.match("/index.html"))
+      )
     );
     return;
   }
 
+  /* Estáticos: se consulta SOLO la caché actual. Así una caché de una
+     versión anterior nunca puede servir archivos viejos, aunque siga ahí. */
   e.respondWith(
-    caches.match(req).then((cached) => {
-      const network = fetch(req).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(req, copy));
-        return res;
-      }).catch(() => cached);
-      return cached || network;
-    })
+    caches.open(CACHE).then((cache) =>
+      cache.match(req).then((cached) => {
+        const network = fetch(req).then((res) => {
+          if (res && res.status === 200) cache.put(req, res.clone());
+          return res;
+        }).catch(() => cached);
+        return cached || network;
+      })
+    )
   );
 });

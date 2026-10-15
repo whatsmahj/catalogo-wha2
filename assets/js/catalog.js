@@ -16,6 +16,8 @@
   let filterCat = "";
   let search = "";
   let sortBy = "default";
+  /* Precio efectivo (el que paga el cliente): oferta si la hay. */
+  const effPrice = (p) => Number(p.promo_price || p.price) || 0;
 
   function cartKey() { return CART_KEY + (business ? business.slug : "x"); }
   function loadCart() { try { cart = JSON.parse(localStorage.getItem(cartKey())) || []; } catch (e) { cart = []; } }
@@ -170,7 +172,6 @@
     let list = products.slice();
     if (filterCat) list = list.filter((p) => p.category_id === filterCat);
     if (search) list = list.filter((p) => (p.name || "").toLowerCase().includes(search) || (p.description || "").toLowerCase().includes(search));
-    const effPrice = (p) => Number(p.promo_price || p.price) || 0;
     if (sortBy === "price-asc") list.sort((a, b) => effPrice(a) - effPrice(b) || (a.sort_order || 0) - (b.sort_order || 0));
     else if (sortBy === "price-desc") list.sort((a, b) => effPrice(b) - effPrice(a) || (a.sort_order || 0) - (b.sort_order || 0));
     else if (sortBy === "new") list.sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
@@ -183,27 +184,77 @@
     $("#catalogBody").innerHTML = `<div class="product-grid">${list.map((p) => {
       const cat = categories.find((c) => c.id === p.category_id);
       const img = (p.images && p.images[0]) || "";
-      const price = p.promo_price || p.price;
+      const hasPromo = Number(p.promo_price) > 0 && Number(p.promo_price) < Number(p.price);
+      const savePct = hasPromo ? Math.round((1 - Number(p.promo_price) / Number(p.price)) * 100) : 0;
+      const inCart = cart.some((i) => i.id === p.id);
       return `<article class="product-card" data-pid="${p.id}">
-        ${img ? `<img class="ph" src="${U.escapeHtml(img)}" alt="${U.escapeHtml(p.name)}">` : `<div class="ph"></div>`}
-        <div class="body">
-          ${cat ? `<div class="cat">${U.escapeHtml(cat.name)}</div>` : ""}
-          <h3>${U.escapeHtml(p.name)}</h3>
-          ${p.description ? `<p class="small" style="flex:1">${U.escapeHtml(p.description).slice(0, 90)}</p>` : ""}
-          <div class="price">${U.currency(price, business.currency)}${p.promo_price ? `<span class="old">${U.currency(p.price, business.currency)}</span>` : ""}</div>
-          <button class="btn btn-primary btn-block mt-2" data-add="${p.id}">+ ${t("catalog.addToCart")}</button>
+        <div class="pc-media">
+          ${img ? `<img class="pc-img" src="${U.escapeHtml(img)}" alt="${U.escapeHtml(p.name)}" loading="lazy" decoding="async">` : `<div class="pc-img pc-noimg">📦</div>`}
+          ${cat ? `<span class="pc-badge">${U.escapeHtml(cat.name)}</span>` : ""}
+          ${inCart ? `<button class="pc-x" data-remove="${p.id}" title="${t("catalog.removeFromOrder")}" aria-label="${t("catalog.removeFromOrder")}">✕</button>` : ""}
+        </div>
+        <div class="pc-body">
+          <h3 class="pc-name">${U.escapeHtml(p.name)}</h3>
+          <ul class="pc-meta">
+            <li><span class="pc-ic">🏷️</span><span>${t("catalog.cat")}: <b>${U.escapeHtml(cat ? cat.name : "—")}</b></span></li>
+            <li><span class="pc-ic">💰</span><span>${t("catalog.price")}: <b>${U.currency(p.price, business.currency)}</b></span></li>
+            ${hasPromo
+              ? `<li><span class="pc-ic">🎁</span><span>${t("catalog.offer")}: <b>${U.currency(p.promo_price, business.currency)}</b></span></li>
+                 <li class="pc-ok"><span class="pc-ic">✅</span><span>${t("catalog.save")}: <b>${savePct}%</b></span></li>`
+              : `<li><span class="pc-ic">🎁</span><span>${t("catalog.offer")}: <b>—</b></span></li>
+                 <li class="pc-ok"><span class="pc-ic">✅</span><span><b>${t("catalog.available")}</b></span></li>`}
+          </ul>
+          <div class="pc-actions">
+            <button class="btn btn-primary btn-sm pc-add" data-add="${p.id}">+ ${t("catalog.addToCart")}</button>
+            <button class="btn btn-soft btn-sm pc-share" data-share="${p.id}">${t("catalog.share")}</button>
+          </div>
         </div>
       </article>`;
     }).join("")}</div>`;
 
     $$("[data-add]").forEach((b) => b.addEventListener("click", () => {
       const p = products.find((x) => x.id === b.getAttribute("data-add"));
+      if (!p) return;
       addToCart(p);
       b.textContent = "✓ " + t("catalog.addToCart");
       setTimeout(() => { b.textContent = "+ " + t("catalog.addToCart"); }, 900);
+      addRemoveButton(p.id);
     }));
 
+    $$("[data-remove]").forEach((b) => b.addEventListener("click", () => removeFromOrder(b.getAttribute("data-remove"), b)));
+    $$("[data-share]").forEach((b) => b.addEventListener("click", () => shareProduct(b.getAttribute("data-share"))));
+
     trackViews();
+  }
+
+  /* Añade la ✕ de "quitar del pedido" a la tarjeta, sin repintar la rejilla. */
+  function addRemoveButton(id) {
+    const card = document.querySelector(`.product-card[data-pid="${id}"]`);
+    const media = card && card.querySelector(".pc-media");
+    if (!media || media.querySelector(".pc-x")) return;
+    const x = document.createElement("button");
+    x.className = "pc-x";
+    x.setAttribute("data-remove", id);
+    x.setAttribute("title", t("catalog.removeFromOrder"));
+    x.setAttribute("aria-label", t("catalog.removeFromOrder"));
+    x.textContent = "✕";
+    x.addEventListener("click", () => removeFromOrder(id, x));
+    media.appendChild(x);
+  }
+
+  function removeFromOrder(id, btn) {
+    cart = cart.filter((i) => i.id !== id);
+    saveCart();
+    if (btn) btn.remove();
+  }
+
+  /* Comparte el producto por WhatsApp (sin destinatario: abre el selector). */
+  function shareProduct(id) {
+    const p = products.find((x) => x.id === id);
+    if (!p) return;
+    const url = location.origin + location.pathname + "?b=" + encodeURIComponent(business.slug);
+    const msg = "*" + p.name + "*\n" + U.currency(effPrice(p), business.currency) + "\n" + url;
+    window.open(U.waLink("", msg), "_blank");
   }
 
   /* Registra una visita por producto y sesión ("productos más vistos"). */
