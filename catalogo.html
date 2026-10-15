@@ -130,6 +130,34 @@
   </div>
 </div>
 
+<!-- Ficha de producto -->
+<div class="pd hidden" id="pdModal">
+  <div class="pd-backdrop" data-pd-close></div>
+  <div class="pd-panel" role="dialog" aria-modal="true" aria-labelledby="pdName">
+    <button class="pd-close" data-pd-close aria-label="Cerrar">✕</button>
+    <div class="pd-grid">
+      <div class="pd-media">
+        <div class="pd-main">
+          <img id="pdImg" alt="" hidden>
+          <span class="pd-noimg" id="pdNoImg">📦</span>
+        </div>
+        <div class="pd-thumbs" id="pdThumbs"></div>
+      </div>
+      <div class="pd-info">
+        <span class="pd-badge hidden" id="pdBadge"></span>
+        <h2 id="pdName"></h2>
+        <div class="pd-price" id="pdPrice"></div>
+        <p class="pd-desc" id="pdDesc"></p>
+        <ul class="pc-meta" id="pdMeta"></ul>
+        <div class="pd-actions">
+          <button class="btn btn-primary" id="pdAdd"></button>
+          <button class="btn btn-soft" id="pdShare"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Chatbot -->
 <button class="chat-fab" id="chatFab" aria-label="Chat">💬</button>
 <div class="chat-panel" id="chatPanel">

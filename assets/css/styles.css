@@ -468,6 +468,47 @@ td .thumb-sm { width: 44px; height: 44px; border-radius: 10px; object-fit: cover
   .pc-actions { flex-direction: column; }
 }
 
+/* ---------- Ficha de producto ---------- */
+.pd { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.pd-backdrop { position: absolute; inset: 0; background: rgba(20, 10, 35, .55); }
+.pd-panel {
+  position: relative; background: #fff; border-radius: var(--radius); width: 100%; max-width: 880px;
+  max-height: 90vh; overflow: auto; box-shadow: var(--shadow-lg);
+}
+.pd-close {
+  position: absolute; inset-inline-end: 12px; top: 12px; z-index: 2; width: 34px; height: 34px;
+  border: 0; border-radius: 999px; cursor: pointer; font-size: 1rem; line-height: 1;
+  background: rgba(255, 255, 255, .92); color: var(--ink-2); box-shadow: 0 2px 8px rgba(0, 0, 0, .16);
+}
+.pd-close:hover { background: var(--danger); color: #fff; }
+.pd-grid { display: grid; grid-template-columns: 1fr 1fr; }
+.pd-media { background: var(--brand-050); }
+.pd-main { aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.pd-main img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pd-noimg { font-size: 3rem; color: var(--ink-3); }
+.pd-thumbs { display: flex; gap: 8px; padding: 10px; flex-wrap: wrap; }
+.pd-thumb { width: 54px; height: 54px; border-radius: 10px; overflow: hidden; border: 2px solid transparent; background: #fff; padding: 0; cursor: pointer; }
+.pd-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pd-thumb.active { border-color: var(--brand-600); }
+.pd-info { padding: 26px; display: flex; flex-direction: column; }
+.pd-badge { align-self: flex-start; background: var(--ok); color: #fff; font-size: .74rem; font-weight: 700; padding: 4px 10px; border-radius: 8px; }
+.pd-info h2 { margin: 10px 0 8px; font-size: 1.5rem; }
+.pd-price { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.pd-price .now { font-size: 1.5rem; font-weight: 750; color: var(--ink); }
+.pd-price .old { font-size: .95rem; color: var(--ink-3); text-decoration: line-through; }
+.pd-price .save { font-size: .78rem; font-weight: 700; color: #fff; background: var(--ok); padding: 3px 9px; border-radius: 999px; }
+.pd-desc { color: var(--ink-2); font-size: .95rem; line-height: 1.6; margin: 0 0 16px; white-space: pre-wrap; }
+.pd-desc.muted { color: var(--ink-3); font-style: italic; }
+.pd-actions { display: flex; gap: 10px; margin-top: auto; padding-top: 8px; }
+.pd-actions .btn { flex: 1; justify-content: center; }
+@media (max-width: 720px) {
+  .pd { padding: 0; align-items: flex-end; }
+  .pd-panel { max-width: 100%; max-height: 94vh; border-radius: var(--radius) var(--radius) 0 0; }
+  .pd-grid { grid-template-columns: 1fr; }
+  .pd-info { padding: 20px; }
+  .pd-info h2 { font-size: 1.25rem; }
+}
+
 .cart-fab {
   position: fixed; inset-inline-end: 20px; bottom: 20px; z-index: 70;
   background: var(--wa); color: #fff; border: 0; border-radius: 999px; padding: 14px 22px;

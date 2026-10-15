@@ -73,9 +73,17 @@
     $("#sortSelect").addEventListener("change", (e) => { sortBy = e.target.value; renderProducts(); });
     $("#catSearch").addEventListener("input", (e) => { search = e.target.value.toLowerCase(); renderProducts(); });
     $("#cartFab").addEventListener("click", () => $("#cartDrawer").classList.add("open"));
+    $$("[data-pd-close]").forEach((b) => b.addEventListener("click", closeProductDetail));
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !$("#pdModal").classList.contains("hidden")) closeProductDetail();
+    });
     $$("[data-cart-close]").forEach((b) => b.addEventListener("click", () => $("#cartDrawer").classList.remove("open")));
     $("#sendOrder").addEventListener("click", sendOrder);
-    document.addEventListener("langchange", () => { renderChips(); renderProducts(); renderCart(); });
+    document.addEventListener("langchange", () => {
+      renderChips(); renderProducts(); renderCart();
+      /* Si la ficha está abierta, se repinta en el idioma nuevo. */
+      if (pdCurrent && !$("#pdModal").classList.contains("hidden")) openProductDetail(pdCurrent);
+    });
   }
 
   /* ---------- SEO dinámico del negocio ---------- */
@@ -206,7 +214,7 @@
           </ul>
           <div class="pc-actions">
             <button class="btn btn-primary btn-sm pc-add" data-add="${p.id}">+ ${t("catalog.addToCart")}</button>
-            <button class="btn btn-soft btn-sm pc-share" data-share="${p.id}">${t("catalog.share")}</button>
+            <button class="btn btn-soft btn-sm pc-detail" data-detail="${p.id}">${t("catalog.details")}</button>
           </div>
         </div>
       </article>`;
@@ -222,7 +230,7 @@
     }));
 
     $$("[data-remove]").forEach((b) => b.addEventListener("click", () => removeFromOrder(b.getAttribute("data-remove"), b)));
-    $$("[data-share]").forEach((b) => b.addEventListener("click", () => shareProduct(b.getAttribute("data-share"))));
+    $$("[data-detail]").forEach((b) => b.addEventListener("click", () => openProductDetail(b.getAttribute("data-detail"))));
 
     trackViews();
   }
@@ -255,6 +263,88 @@
     const url = location.origin + location.pathname + "?b=" + encodeURIComponent(business.slug);
     const msg = "*" + p.name + "*\n" + U.currency(effPrice(p), business.currency) + "\n" + url;
     window.open(U.waLink("", msg), "_blank");
+  }
+
+  /* ---------- Ficha de producto ---------- */
+  let pdList = [];
+  let pdCurrent = null;
+
+  function openProductDetail(id) {
+    const p = products.find((x) => x.id === id);
+    if (!p) return;
+    pdCurrent = id;
+    const cat = categories.find((c) => c.id === p.category_id);
+    const price = Number(p.price) || 0;
+    const hasPromo = Number(p.promo_price) > 0 && Number(p.promo_price) < price;
+    const savePct = hasPromo ? Math.round((1 - Number(p.promo_price) / price) * 100) : 0;
+
+    const badge = $("#pdBadge");
+    badge.textContent = cat ? cat.name : "";
+    badge.classList.toggle("hidden", !cat);
+
+    $("#pdName").textContent = p.name;
+    $("#pdPrice").innerHTML = hasPromo
+      ? `<span class="now">${U.currency(p.promo_price, business.currency)}</span><span class="old">${U.currency(price, business.currency)}</span><span class="save">-${savePct}%</span>`
+      : `<span class="now">${U.currency(price, business.currency)}</span>`;
+
+    const desc = (p.description || "").trim();
+    const dEl = $("#pdDesc");
+    dEl.textContent = desc || t("catalog.noDescription");
+    dEl.classList.toggle("muted", !desc);
+
+    $("#pdMeta").innerHTML = `
+      <li><span class="pc-ic">🏷️</span><span>${t("catalog.cat")}: <b>${U.escapeHtml(cat ? cat.name : "—")}</b></span></li>
+      <li><span class="pc-ic">💰</span><span>${t("catalog.price")}: <b>${U.currency(price, business.currency)}</b></span></li>
+      ${hasPromo
+        ? `<li><span class="pc-ic">🎁</span><span>${t("catalog.offer")}: <b>${U.currency(p.promo_price, business.currency)}</b></span></li>
+           <li class="pc-ok"><span class="pc-ic">✅</span><span>${t("catalog.save")}: <b>${savePct}%</b></span></li>`
+        : `<li class="pc-ok"><span class="pc-ic">✅</span><span><b>${t("catalog.available")}</b></span></li>`}`;
+
+    renderPdImages((p.images || []).filter(Boolean), p.name);
+
+    const addBtn = $("#pdAdd");
+    addBtn.textContent = "+ " + t("catalog.addToCart");
+    addBtn.onclick = () => {
+      addToCart(p);
+      addRemoveButton(p.id);
+      addBtn.textContent = "✓ " + t("catalog.addToCart");
+      setTimeout(() => { addBtn.textContent = "+ " + t("catalog.addToCart"); }, 900);
+    };
+    $("#pdShare").textContent = t("catalog.share");
+    $("#pdShare").onclick = () => shareProduct(p.id);
+
+    $("#pdModal").classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+  }
+
+  function renderPdImages(imgs, name) {
+    pdList = imgs;
+    const main = $("#pdImg"), noimg = $("#pdNoImg"), thumbs = $("#pdThumbs");
+    if (!imgs.length) {
+      main.hidden = true;
+      noimg.hidden = false;
+      thumbs.innerHTML = "";
+      return;
+    }
+    main.hidden = false;
+    noimg.hidden = true;
+    main.src = imgs[0];
+    main.alt = name;
+    thumbs.innerHTML = imgs.length > 1
+      ? imgs.map((u, i) => `<button class="pd-thumb${i === 0 ? " active" : ""}" data-pd-thumb="${i}" aria-label="${i + 1}"><img src="${U.escapeHtml(u)}" alt=""></button>`).join("")
+      : "";
+    $$("[data-pd-thumb]").forEach((b) => b.addEventListener("click", () => {
+      const i = Number(b.getAttribute("data-pd-thumb"));
+      if (!pdList[i]) return;
+      main.src = pdList[i];
+      $$("[data-pd-thumb]").forEach((x) => x.classList.toggle("active", x === b));
+    }));
+  }
+
+  function closeProductDetail() {
+    pdCurrent = null;
+    $("#pdModal").classList.add("hidden");
+    document.body.style.overflow = "";
   }
 
   /* Registra una visita por producto y sesión ("productos más vistos"). */
