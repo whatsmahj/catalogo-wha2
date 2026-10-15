@@ -35,7 +35,8 @@
     <div class="header-actions">
       <div class="lang" data-lang-root></div>
       <a class="btn btn-wa btn-sm" id="catWaTop" target="_blank" rel="noopener" href="#">
-        <span data-i18n="catalog.callWa">Escríbenos por WhatsApp</span>
+        <span class="desktop-only" data-i18n="catalog.callWa">Escríbenos por WhatsApp</span>
+        <span class="mobile-only" data-i18n="catalog.callWaShort">WhatsApp</span>
       </a>
       <button class="burger" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
@@ -69,7 +70,13 @@
 <div class="catalog-toolbar">
   <div class="container">
     <div class="row wrap" style="gap:12px">
-      <div class="chips" id="catChips"></div>
+      <div class="cat-filter">
+        <label class="cat-filter-label" for="catSelect" data-i18n="catalog.category">Categoría</label>
+        <div class="select-wrap">
+          <select class="cat-select" id="catSelect"></select>
+          <span class="select-arrow" aria-hidden="true"></span>
+        </div>
+      </div>
       <div class="spacer"></div>
       <input class="input" id="catSearch" type="search" style="max-width:220px" data-i18n-placeholder="catalog.searchPh" placeholder="Buscar producto…">
     </div>

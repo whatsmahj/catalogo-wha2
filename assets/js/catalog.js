@@ -66,6 +66,7 @@
     renderProducts();
     renderCart();
 
+    $("#catSelect").addEventListener("change", (e) => { filterCat = e.target.value; renderProducts(); });
     $("#catSearch").addEventListener("input", (e) => { search = e.target.value.toLowerCase(); renderProducts(); });
     $("#cartFab").addEventListener("click", () => $("#cartDrawer").classList.add("open"));
     $$("[data-cart-close]").forEach((b) => b.addEventListener("click", () => $("#cartDrawer").classList.remove("open")));
@@ -150,15 +151,14 @@
   }
 
   /* ---------- Chips de categorías ---------- */
+  /* Filtro de categorías: un desplegable compacto (sin fila deslizable). */
   function renderChips() {
-    const chips = $("#catChips");
+    const sel = $("#catSelect");
+    if (!sel) return;
     const items = [{ id: "", name: t("catalog.all") }].concat(categories);
-    chips.innerHTML = items.map((c) =>
-      `<button class="chip ${filterCat === c.id ? "active" : ""}" data-cat="${c.id}">${U.escapeHtml(c.name)}</button>`).join("");
-    $$("[data-cat]", chips).forEach((b) => b.addEventListener("click", () => {
-      filterCat = b.getAttribute("data-cat");
-      renderChips(); renderProducts();
-    }));
+    sel.innerHTML = items.map((c) =>
+      `<option value="${U.escapeHtml(c.id)}">${U.escapeHtml(c.name)}</option>`).join("");
+    sel.value = filterCat || "";
   }
 
   /* ---------- Productos ---------- */

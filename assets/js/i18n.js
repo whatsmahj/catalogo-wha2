@@ -427,6 +427,8 @@
 
       "catalog.products": "Productos",
       "catalog.all": "Todos",
+      "catalog.category": "Categoría",
+      "catalog.callWaShort": "WhatsApp",
       "catalog.searchPh": "Buscar producto…",
       "catalog.noProducts": "Este catálogo todavía no tiene productos.",
       "catalog.addToCart": "Agregar",
@@ -892,6 +894,8 @@
 
       "catalog.products": "Produits",
       "catalog.all": "Tous",
+      "catalog.category": "Catégorie",
+      "catalog.callWaShort": "WhatsApp",
       "catalog.searchPh": "Rechercher un produit…",
       "catalog.noProducts": "Ce catalogue n'a pas encore de produits.",
       "catalog.addToCart": "Ajouter",
@@ -1357,6 +1361,8 @@
 
       "catalog.products": "المنتجات",
       "catalog.all": "الكل",
+      "catalog.category": "الفئة",
+      "catalog.callWaShort": "واتساب",
       "catalog.searchPh": "ابحث عن منتج…",
       "catalog.noProducts": "لا يحتوي هذا الكتالوج على منتجات بعد.",
       "catalog.addToCart": "إضافة",
