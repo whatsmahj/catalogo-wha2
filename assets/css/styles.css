@@ -532,6 +532,15 @@ td .thumb-sm { width: 44px; height: 44px; border-radius: 10px; object-fit: cover
 #admTable td:last-child .btn { padding: 5px 9px; font-size: .76rem; }
 #admTable a { white-space: nowrap; }
 
+/* ---------- Agenda de citas ---------- */
+.agenda-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.agenda-row:last-child { border-bottom: 0; }
+.agenda-time { font-weight: 750; font-size: 1.05rem; color: var(--brand-600); min-width: 64px; }
+@media (max-width: 640px) {
+  .agenda-row { flex-wrap: wrap; }
+  .agenda-time { min-width: 100%; font-size: 1.15rem; }
+}
+
 .cart-fab {
   position: fixed; inset-inline-end: 20px; bottom: 20px; z-index: 70;
   background: var(--wa); color: #fff; border: 0; border-radius: 999px; padding: 14px 22px;
@@ -548,8 +557,11 @@ td .thumb-sm { width: 44px; height: 44px; border-radius: 10px; object-fit: cover
   background: #fff; display: flex; flex-direction: column; box-shadow: var(--shadow-lg);
 }
 .drawer .panel header { padding: 18px 20px; border-bottom: 1px solid var(--line); display: flex; align-items: center; }
-.drawer .panel .content { padding: 16px 20px; overflow-y: auto; flex: 1; }
-.drawer .panel footer { padding: 16px 20px; border-top: 1px solid var(--line); }
+.drawer .panel .content { padding: 16px 20px; overflow-y: auto; flex: 1 1 auto; min-height: 130px; }
+.drawer .panel footer { padding: 14px 20px; border-top: 1px solid var(--line); flex: 0 1 auto; overflow-y: auto; max-height: 66%; }
+.drawer .panel footer .field { margin-bottom: 8px; }
+.drawer .panel footer .field label { font-size: .76rem; margin-bottom: 3px; }
+.drawer .panel footer .input, .drawer .panel footer .select, .drawer .panel footer .textarea { padding: 9px 12px; font-size: .88rem; }
 .cart-line { display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
 .cart-line img { width: 54px; height: 54px; border-radius: 10px; object-fit: cover; }
 .qty { display: flex; align-items: center; gap: 8px; }

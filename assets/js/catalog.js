@@ -70,6 +70,8 @@
     renderCart();
 
     $("#catSelect").addEventListener("change", (e) => { filterCat = e.target.value; renderProducts(); });
+    const dIn = $("#custDate");
+    if (dIn) dIn.addEventListener("change", checkWorkDay);
     $("#sortSelect").addEventListener("change", (e) => { sortBy = e.target.value; renderProducts(); });
     $("#catSearch").addEventListener("input", (e) => { search = e.target.value.toLowerCase(); renderProducts(); });
     $("#cartFab").addEventListener("click", () => $("#cartDrawer").classList.add("open"));
@@ -169,9 +171,13 @@
     if (!sel) return;
     /* Número de productos de cada categoría: «Ropa (12)». */
     const countFor = (id) => (id ? products.filter((p) => p.category_id === id).length : products.length);
-    const items = [{ id: "", name: t("catalog.all") }].concat(categories);
-    sel.innerHTML = items.map((c) =>
-      `<option value="${U.escapeHtml(c.id)}">${U.escapeHtml(c.name)} (${countFor(c.id)})</option>`).join("");
+    const opt = (c) => `<option value="${U.escapeHtml(c.id)}">${U.escapeHtml(c.name)} (${countFor(c.id)})</option>`;
+    const prod = categories.filter((c) => (c.kind || "product") === "product");
+    const serv = categories.filter((c) => c.kind === "service");
+    let html = opt({ id: "", name: t("catalog.all") });
+    if (prod.length) html += `<optgroup label="${t("cat.groupProducts")}">${prod.map(opt).join("")}</optgroup>`;
+    if (serv.length) html += `<optgroup label="${t("cat.groupServices")}">${serv.map(opt).join("")}</optgroup>`;
+    sel.innerHTML = html;
     sel.value = filterCat || "";
   }
 
@@ -403,6 +409,47 @@
     saveCart();
   }
 
+  /* ---------- Horarios disponibles para las citas ---------- */
+  const toMin = (s) => { const p = String(s || "").split(":"); return (Number(p[0]) || 0) * 60 + (Number(p[1]) || 0); };
+  const fmtMin = (m) => String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
+
+  function buildSlots() {
+    const open = business.open_time || "09:00";
+    const close = business.close_time || "18:00";
+    const step = Number(business.slot_minutes) || 30;
+    const out = [];
+    for (let t = toMin(open); t <= toMin(close) && out.length < 96; t += step) out.push(fmtMin(t));
+    return out.length ? out : ["09:00"];
+  }
+
+  function workDays() { return business.work_days || "[1][2][3][4][5][6]"; }
+
+  function fillSlots() {
+    const sel = $("#custTime");
+    if (!sel) return;
+    const prev = sel.value;
+    const slots = buildSlots();
+    sel.innerHTML = slots.map((s) => `<option value="${s}">${s}</option>`).join("");
+    if (prev && slots.indexOf(prev) >= 0) sel.value = prev;
+  }
+
+  /* Avisa si el día elegido no es laborable. */
+  function checkWorkDay() {
+    const dEl = $("#custDate"), hint = $("#apptHint");
+    if (!dEl || !hint) return true;
+    if (!dEl.value) { hint.textContent = t("order.apptHint"); hint.style.color = ""; return true; }
+    const dow = new Date(dEl.value + "T12:00:00").getDay();
+    const iso = dow === 0 ? 7 : dow;
+    if (workDays().indexOf("[" + iso + "]") < 0) {
+      hint.textContent = t("order.closedDay");
+      hint.style.color = "var(--danger)";
+      return false;
+    }
+    hint.textContent = t("order.apptHint");
+    hint.style.color = "";
+    return true;
+  }
+
   function renderCart() {
     const fab = $("#cartFab");
     fab.classList.toggle("hidden", cart.length === 0);
@@ -411,7 +458,18 @@
 
     /* Los campos de cita solo salen si el pedido lleva algún servicio reservable. */
     const af = $("#apptFields");
-    if (af) af.classList.toggle("hidden", !cart.some((i) => i.bookable));
+    if (af) {
+      const needs = cart.some((i) => i.bookable);
+      af.classList.toggle("hidden", !needs);
+      if (needs) {
+        fillSlots();
+        const dEl = $("#custDate");
+        if (dEl && !dEl.min) {
+          const h = new Date();
+          dEl.min = h.getFullYear() + "-" + String(h.getMonth() + 1).padStart(2, "0") + "-" + String(h.getDate()).padStart(2, "0");
+        }
+      }
+    }
 
     const c = $("#cartContent");
     if (!cart.length) {
@@ -454,6 +512,7 @@
     if (!name) { faltan.push($("#custName")); }
     if (!phone) { faltan.push($("#custPhone")); }
     if (needsAppt && !date) { faltan.push($("#custDate")); }
+    if (needsAppt && date && !checkWorkDay()) { faltan.push($("#custDate")); }
     if (faltan.length) {
       faltan.forEach((el) => { el.style.outline = "2px solid var(--danger)"; });
       faltan[0].focus();

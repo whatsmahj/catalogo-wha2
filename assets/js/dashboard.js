@@ -147,6 +147,9 @@
         case "config-delivery": view.innerHTML = viewConfigDelivery(); bindConfigDelivery(); break;
         case "config-payments": view.innerHTML = viewConfigPayments(); bindConfigPayments(); break;
         case "config-seo": view.innerHTML = viewConfigSeo(); bindConfigSeo(); break;
+        case "config-schedule": view.innerHTML = viewConfigSchedule(); bindConfigSchedule(); break;
+        case "agenda": view.innerHTML = viewAgenda(); bindAgenda(); break;
+        case "sales": view.innerHTML = viewSales(); bindSales(); break;
         case "account": view.innerHTML = viewAccount(); bindAccount(); break;
         case "setup": view.innerHTML = viewSetup(); bindSetup(); break;
         case "admin":
@@ -431,6 +434,17 @@
 
   /* ==================== FORM PRODUCTO ==================== */
   let productDraft = null;
+  /* Opciones de categoría agrupadas por tipo (productos / servicios). */
+  function catOptions(selectedId) {
+    const prod = state.categories.filter((c) => (c.kind || "product") === "product");
+    const serv = state.categories.filter((c) => c.kind === "service");
+    const opt = (c) => `<option value="${c.id}" ${selectedId === c.id ? "selected" : ""}>${U.escapeHtml(c.name)}</option>`;
+    let out = "";
+    if (prod.length) out += `<optgroup label="${t("cat.groupProducts")}">${prod.map(opt).join("")}</optgroup>`;
+    if (serv.length) out += `<optgroup label="${t("cat.groupServices")}">${serv.map(opt).join("")}</optgroup>`;
+    return out;
+  }
+
   function viewProductForm(id) {
     const isNew = !id || id === "new";
     const p = isNew ? { name: "", slug: "", category_id: "", description: "", sort_order: 0, price: "", promo_price: "", images: [], active: true, kind: "product" } : state.products.find((x) => x.id === id);
@@ -480,7 +494,7 @@
             </div>
             <div class="field"><label>${t("prod.category")}</label>
               <select class="select" id="pCat"><option value="">${t("prod.categoryPh")}</option>
-              ${state.categories.map((c) => `<option value="${c.id}" ${p.category_id === c.id ? "selected" : ""}>${U.escapeHtml(c.name)}</option>`).join("")}
+              ${catOptions(p.category_id)}
               </select></div>
             <div class="field"><label>${t("prod.desc")} (${t("common.optional")})</label>
               <textarea class="textarea" id="pDesc" placeholder="${t("prod.descPh")}">${U.escapeHtml(p.description || "")}</textarea>
@@ -640,7 +654,7 @@
   /* ==================== FORM CATEGORÍA ==================== */
   function viewCategoryForm(id) {
     const isNew = !id || id === "new";
-    const c = isNew ? { name: "", slug: "", sort_order: 0, image_url: "", alt: "" } : state.categories.find((x) => x.id === id);
+    const c = isNew ? { name: "", slug: "", sort_order: 0, image_url: "", alt: "", kind: "product" } : state.categories.find((x) => x.id === id);
     if (!c) return `<div class="alert alert-error">404</div>`;
     return `
       <div class="page-head page-head-row">
@@ -650,6 +664,12 @@
       <div class="card mb-3" style="max-width:820px">
         <div class="small muted" style="text-transform:uppercase;font-weight:700">${t("cat.info")}</div>
         <h3>${t("cat.infoSub")}</h3>
+        <div class="field"><label>${t("cat.kind")}</label>
+          <select class="select" id="cKind">
+            <option value="product" ${(c.kind || "product") === "product" ? "selected" : ""}>${t("prod.kindProduct")}</option>
+            <option value="service" ${c.kind === "service" ? "selected" : ""}>${t("prod.kindService")}</option>
+          </select>
+          <div class="hint">${t("cat.kindHint")}</div></div>
         <div class="field"><label>${t("cat.name")}</label><input class="input" id="cName" value="${U.escapeHtml(c.name)}" placeholder="${t("cat.namePh")}"></div>
         <div class="field"><label>${t("cat.slug")}</label><input class="input" id="cSlug" value="${U.escapeHtml(c.slug)}"><div class="hint">${t("cat.slugHint")}</div></div>
         <div class="field"><label>${t("cat.order")}</label><input class="input" id="cOrder" type="number" value="${c.sort_order || 0}"></div>
@@ -686,6 +706,7 @@
         name: $("#cName").value.trim(),
         slug: $("#cSlug").value.trim(),
         sort_order: parseInt($("#cOrder").value || "0", 10),
+        kind: $("#cKind") ? $("#cKind").value : "product",
         image_url: image,
         alt: $("#cAlt").value.trim()
       };
@@ -823,6 +844,7 @@
         ${card("config-presentation", "catalog,publish", "🖼️", t("cfg.presentation"), t("cfg.presentationSub"), t("cfg.personalize"), b.hero_enabled ? done : opt)}
         ${card("config-delivery", "sales", "🚚", t("cfg.delivery"), t("cfg.deliverySub"), t("cfg.configure"), b.delivery ? done : opt)}
         ${card("config-payments", "sales", "💳", t("cfg.payments"), t("cfg.paymentsSub"), t("cfg.configure"), b.payments ? done : opt)}
+        ${card("config-schedule", "sales", "🕒", t("cfg.schedule"), t("cfg.scheduleSub"), t("cfg.configure"), b.open_time ? done : opt)}
         ${card("config-seo", "publish", "🔍", t("cfg.seo"), t("cfg.seoSub"), t("cfg.configure"), b.seo_title ? done : opt)}
       </div>
       <div class="empty hidden" id="cfgEmpty"><div class="ico">🗂️</div><p>${t("cfg.emptyFilter")}</p></div>`;
@@ -1938,6 +1960,235 @@
           </table></div>
         </div>
       </div>`;
+  }
+
+  /* ==================== VISTA: HORARIOS ==================== */
+  function viewConfigSchedule() {
+    const b = state.business;
+    const wd = b.work_days || "[1][2][3][4][5][6]";
+    const hasDay = (d) => wd.indexOf("[" + d + "]") >= 0;
+    return configHead(t("cfg.schedule"), t("cfg.scheduleSub")) + `
+      <div class="card mb-3" style="max-width:820px">
+        <div class="small muted" style="text-transform:uppercase;font-weight:700">${t("cfg.scheduleTitle")}</div>
+        <h3>${t("cfg.scheduleHours")}</h3><p class="small">${t("cfg.scheduleHoursSub")}</p>
+        <div class="grid cols-3">
+          <div class="field"><label>${t("cfg.openTime")}</label><input class="input" id="schOpen" type="time" value="${U.escapeHtml(b.open_time || "09:00")}"></div>
+          <div class="field"><label>${t("cfg.closeTime")}</label><input class="input" id="schClose" type="time" value="${U.escapeHtml(b.close_time || "18:00")}"></div>
+          <div class="field"><label>${t("cfg.slot")}</label>
+            <select class="select" id="schSlot">
+              ${[15, 20, 30, 45, 60, 90, 120].map((m) => `<option value="${m}" ${Number(b.slot_minutes || 30) === m ? "selected" : ""}>${m} ${t("cfg.minutes")}</option>`).join("")}
+            </select></div>
+        </div>
+        <div class="field"><label>${t("cfg.workDays")}</label>
+          <div class="row wrap" style="gap:8px">
+            ${["1", "2", "3", "4", "5", "6", "7"].map((d) => `
+              <label class="opt-row" style="flex:0 0 auto;padding:10px 14px;margin:0">
+                <input type="checkbox" class="schDay" value="${d}" ${hasDay(d) ? "checked" : ""}>
+                <span>${t("day." + d)}</span></label>`).join("")}
+          </div></div>
+        <div class="row" style="justify-content:flex-end">
+          <a class="btn btn-ghost" href="#config">${t("cfg.cancel")}</a>
+          <button class="btn btn-primary" id="saveSchedule">${t("cfg.save")}</button>
+        </div>
+      </div>
+      <div class="card" style="max-width:820px;background:var(--brand-050);border-color:var(--brand-500)">
+        <h3>💡 ${t("cfg.tipTitle")}</h3><p class="small">${t("cfg.scheduleTip")}</p>
+      </div>`;
+  }
+  function bindConfigSchedule() {
+    $("#saveSchedule").addEventListener("click", async () => {
+      const days = $$(".schDay:checked").map((c) => "[" + c.value + "]").join("");
+      await S.updateBusiness(state.business.id, {
+        open_time: $("#schOpen").value || "09:00",
+        close_time: $("#schClose").value || "18:00",
+        slot_minutes: parseInt($("#schSlot").value || "30", 10),
+        work_days: days
+      });
+      await loadBusiness(); toast(t("cfg.saved")); route();
+    });
+  }
+
+  /* ==================== VISTA: AGENDA DE CITAS ==================== */
+  function viewAgenda() {
+    return `
+      <div class="page-head page-head-row">
+        <div><div class="small muted">${t("dash.home")} / ${t("agenda.title")}</div><h1>${t("agenda.title")}</h1><p>${t("agenda.sub")}</p></div>
+        <div class="spacer"></div>
+        <a class="btn btn-soft" href="#orders">${t("ord.title")} ›</a>
+      </div>
+      <div id="agendaBody"></div>`;
+  }
+  function bindAgenda() { renderAgenda(); }
+
+  function renderAgenda() {
+    const box = $("#agendaBody");
+    if (!box) return;
+    const appts = state.orders.filter((o) => o.appointment_at)
+      .sort((a, b) => new Date(a.appointment_at) - new Date(b.appointment_at));
+    if (!appts.length) {
+      box.innerHTML = `<div class="card"><div class="empty"><div class="ico">📅</div><h3>${t("agenda.empty")}</h3><p>${t("agenda.emptySub")}</p></div></div>`;
+      return;
+    }
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const groups = {};
+    appts.forEach((o) => {
+      const d = new Date(o.appointment_at);
+      const k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+      (groups[k] = groups[k] || []).push(o);
+    });
+    box.innerHTML = Object.keys(groups).sort().map((k) => {
+      const parts = k.split("-").map(Number);
+      const d = new Date(parts[0], parts[1] - 1, parts[2]);
+      const past = d < today;
+      return `<div class="card mb-3" style="${past ? "opacity:.6" : ""}">
+        <div class="row wrap" style="gap:10px">
+          <h3 style="margin:0;text-transform:capitalize">${d.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}</h3>
+          ${past ? `<span class="badge off">${t("agenda.past")}</span>` : ""}
+          <div class="spacer"></div>
+          <span class="badge info">${groups[k].length} ${t("agenda.appts")}</span>
+        </div>
+        <div class="mt-2">
+          ${groups[k].map((o) => `
+            <div class="agenda-row">
+              <div class="agenda-time">${new Date(o.appointment_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+              <div style="flex:1;min-width:0">
+                <strong>${U.escapeHtml(o.customer_name || "—")}</strong>
+                <div class="small muted">${U.escapeHtml(o.code || "")} · ${U.currency(o.total, state.business.currency)}</div>
+                <div class="small muted">${(o.items || []).map((i) => U.escapeHtml(i.name)).join(", ")}</div>
+              </div>
+              ${o.customer_phone ? `<a class="btn btn-wa btn-sm" href="${U.escapeHtml(U.waLink(o.customer_phone, t("ord.hello") + " " + (o.customer_name || "")))}" target="_blank" rel="noopener">WhatsApp</a>` : ""}
+              <button class="btn btn-ghost btn-sm" data-order="${o.id}">${t("adm.detail")}</button>
+            </div>`).join("")}
+        </div>
+      </div>`;
+    }).join("");
+    bindOrderRows();
+  }
+
+  /* ==================== VISTA: RESUMEN DE VENTAS ==================== */
+  function viewSales() {
+    return `
+      <div class="page-head page-head-row">
+        <div><div class="small muted">${t("dash.home")} / ${t("sales.title")}</div><h1>${t("sales.title")}</h1><p>${t("sales.sub")}</p></div>
+        <div class="spacer"></div>
+        <button class="btn btn-soft" id="salesExport">${t("sales.export")}</button>
+      </div>
+      <div class="row wrap mb-3">
+        <div class="cat-filter">
+          <label class="cat-filter-label" for="salesPeriod">${t("sales.period")}</label>
+          <div class="select-wrap">
+            <select class="cat-select" id="salesPeriod">
+              <option value="7">${t("sales.p7")}</option>
+              <option value="30" selected>${t("sales.p30")}</option>
+              <option value="365">${t("sales.p365")}</option>
+              <option value="0">${t("sales.pAll")}</option>
+            </select><span class="select-arrow" aria-hidden="true"></span>
+          </div>
+        </div>
+      </div>
+      <div id="salesBody"></div>`;
+  }
+  function bindSales() {
+    const sel = $("#salesPeriod");
+    if (sel) sel.addEventListener("change", renderSales);
+    const ex = $("#salesExport");
+    if (ex) ex.addEventListener("click", () => exportSalesCsv(salesRows()));
+    renderSales();
+  }
+
+  /* Pedidos dentro del periodo elegido (0 = todo). */
+  function salesRows() {
+    const sel = $("#salesPeriod");
+    const days = sel ? parseInt(sel.value || "30", 10) : 30;
+    if (!days) return state.orders.slice();
+    const desde = new Date();
+    desde.setDate(desde.getDate() - (days - 1));
+    desde.setHours(0, 0, 0, 0);
+    return state.orders.filter((o) => o.created_at && new Date(o.created_at) >= desde);
+  }
+
+  function renderSales() {
+    const box = $("#salesBody");
+    if (!box) return;
+    const cur = state.business.currency;
+    const rows = salesRows();
+    const valid = rows.filter((o) => o.status !== "cancelled");
+    const total = valid.reduce((s, o) => s + (Number(o.total) || 0), 0);
+    const pend = valid.filter((o) => o.status === "new").length;
+    const avg = valid.length ? total / valid.length : 0;
+
+    // Ventas por día
+    const byDay = {};
+    valid.forEach((o) => {
+      const d = new Date(o.created_at);
+      const k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+      byDay[k] = byDay[k] || { n: 0, total: 0 };
+      byDay[k].n++; byDay[k].total += Number(o.total) || 0;
+    });
+
+    // Productos más vendidos
+    const byProd = {};
+    valid.forEach((o) => (o.items || []).forEach((i) => {
+      byProd[i.name] = byProd[i.name] || { qty: 0, total: 0 };
+      byProd[i.name].qty += Number(i.qty) || 0;
+      byProd[i.name].total += (Number(i.qty) || 0) * (Number(i.price) || 0);
+    }));
+    const top = Object.keys(byProd).map((n) => ({ name: n, ...byProd[n] }))
+      .sort((a, b) => b.total - a.total).slice(0, 10);
+
+    const tile = (v, l) => `<div class="card"><div class="small muted" style="text-transform:uppercase;font-weight:700">${l}</div><h2 style="margin:4px 0 0">${v}</h2></div>`;
+    const days = Object.keys(byDay).sort().reverse();
+
+    box.innerHTML = `
+      <div class="grid cols-4 mb-3">
+        ${tile(U.currency(total, cur), t("sales.revenue"))}
+        ${tile(valid.length, t("sales.orders"))}
+        ${tile(U.currency(avg, cur), t("sales.avg"))}
+        ${tile(pend, t("sales.pending"))}
+      </div>
+      <div class="grid cols-2" style="gap:20px;align-items:start">
+        <div class="card">
+          <h3>${t("sales.byDay")}</h3><p class="small">${t("sales.byDaySub")}</p>
+          <div style="overflow-x:auto"><table>
+            <thead><tr><th>${t("sales.day")}</th><th>${t("sales.orders")}</th><th>${t("sales.total")}</th></tr></thead>
+            <tbody>${days.length ? days.map((k) => `<tr><td>${k.split("-").reverse().join("/")}</td><td>${byDay[k].n}</td><td><strong>${U.currency(byDay[k].total, cur)}</strong></td></tr>`).join("") : `<tr><td colspan="3" class="muted">${t("adm.noData")}</td></tr>`}</tbody>
+          </table></div>
+        </div>
+        <div class="card">
+          <h3>${t("sales.top")}</h3><p class="small">${t("sales.topSub")}</p>
+          <div style="overflow-x:auto"><table>
+            <thead><tr><th>#</th><th>${t("adm.products")}</th><th>${t("sales.qty")}</th><th>${t("sales.total")}</th></tr></thead>
+            <tbody>${top.length ? top.map((p, i) => `<tr><td class="muted">${i + 1}</td><td>${U.escapeHtml(p.name)}</td><td>${p.qty}</td><td><strong>${U.currency(p.total, cur)}</strong></td></tr>`).join("") : `<tr><td colspan="4" class="muted">${t("adm.noData")}</td></tr>`}</tbody>
+          </table></div>
+        </div>
+      </div>`;
+  }
+
+  /* Exporta el resumen de ventas por día (y los pedidos del periodo). */
+  function exportSalesCsv(rows) {
+    if (!rows.length) { toast(t("ord.empty")); return; }
+    const cur = state.business.currency;
+    const head = [t("ord.code"), t("order.name"), t("order.phone"), t("order.city"), t("order.appointment"),
+      t("sales.total"), t("ord.status"), t("ord.date"), t("ord.itemsList")];
+    const body = rows.map((o) => [
+      o.code || "", o.customer_name || "", o.customer_phone || "", o.customer_city || "",
+      o.appointment_at ? new Date(o.appointment_at).toLocaleString() : "",
+      String(o.total || 0),
+      t("ord.status." + (o.status || "new")),
+      o.created_at ? new Date(o.created_at).toLocaleString() : "",
+      (o.items || []).map((i) => i.name + " x" + i.qty).join(" | ")
+    ]);
+    const csv = [head].concat(body)
+      .map((r) => r.map((c) => '"' + String(c).replace(/"/g, '""') + '"').join(";")).join("\r\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "ventas-" + (state.business.slug || "catalogo") + "-" + new Date().toISOString().slice(0, 10) + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+    toast(t("ord.exported"));
   }
 
   /* ==================== ARRANQUE ==================== */
