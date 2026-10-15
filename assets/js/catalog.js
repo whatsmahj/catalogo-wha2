@@ -192,12 +192,16 @@
     $("#catalogBody").innerHTML = `<div class="product-grid">${list.map((p) => {
       const cat = categories.find((c) => c.id === p.category_id);
       const img = (p.images && p.images[0]) || "";
+      const isService = p.kind === "service";
+      const addLabel = isService ? t("catalog.request") : t("catalog.addToCart");
+      const money = (v) => (Number(v) > 0 ? U.currency(v, business.currency) : t("catalog.priceOnRequest"));
       const hasPromo = Number(p.promo_price) > 0 && Number(p.promo_price) < Number(p.price);
       const savePct = hasPromo ? Math.round((1 - Number(p.promo_price) / Number(p.price)) * 100) : 0;
       const inCart = cart.some((i) => i.id === p.id);
       return `<article class="product-card" data-pid="${p.id}">
         <div class="pc-media">
           ${img ? `<img class="pc-img" src="${U.escapeHtml(img)}" alt="${U.escapeHtml(p.name)}" loading="lazy" decoding="async">` : `<div class="pc-img pc-noimg">📦</div>`}
+          ${isService ? `<span class="pc-type">${t("catalog.service")}</span>` : ""}
           ${cat ? `<span class="pc-badge">${U.escapeHtml(cat.name)}</span>` : ""}
           ${inCart ? `<button class="pc-x" data-remove="${p.id}" title="${t("catalog.removeFromOrder")}" aria-label="${t("catalog.removeFromOrder")}">✕</button>` : ""}
         </div>
@@ -205,15 +209,15 @@
           <h3 class="pc-name">${U.escapeHtml(p.name)}</h3>
           <ul class="pc-meta">
             <li><span class="pc-ic">🏷️</span><span>${t("catalog.cat")}: <b>${U.escapeHtml(cat ? cat.name : "—")}</b></span></li>
-            <li><span class="pc-ic">💰</span><span>${t("catalog.price")}: <b>${U.currency(p.price, business.currency)}</b></span></li>
+            <li><span class="pc-ic">💰</span><span>${t("catalog.price")}: <b>${money(p.price)}</b></span></li>
             ${hasPromo
-              ? `<li><span class="pc-ic">🎁</span><span>${t("catalog.offer")}: <b>${U.currency(p.promo_price, business.currency)}</b></span></li>
+              ? `<li><span class="pc-ic">🎁</span><span>${t("catalog.offer")}: <b>${money(p.promo_price)}</b></span></li>
                  <li class="pc-ok"><span class="pc-ic">✅</span><span>${t("catalog.save")}: <b>${savePct}%</b></span></li>`
               : `<li><span class="pc-ic">🎁</span><span>${t("catalog.offer")}: <b>—</b></span></li>
                  <li class="pc-ok"><span class="pc-ic">✅</span><span><b>${t("catalog.available")}</b></span></li>`}
           </ul>
           <div class="pc-actions">
-            <button class="btn btn-primary btn-sm pc-add" data-add="${p.id}">+ ${t("catalog.addToCart")}</button>
+            <button class="btn btn-primary btn-sm pc-add" data-add="${p.id}" data-label="${U.escapeHtml(addLabel)}">+ ${addLabel}</button>
             <button class="btn btn-soft btn-sm pc-detail" data-detail="${p.id}">${t("catalog.details")}</button>
           </div>
         </div>
@@ -224,8 +228,9 @@
       const p = products.find((x) => x.id === b.getAttribute("data-add"));
       if (!p) return;
       addToCart(p);
-      b.textContent = "✓ " + t("catalog.addToCart");
-      setTimeout(() => { b.textContent = "+ " + t("catalog.addToCart"); }, 900);
+      const label = b.getAttribute("data-label") || t("catalog.addToCart");
+      b.textContent = "✓ " + label;
+      setTimeout(() => { b.textContent = "+ " + label; }, 900);
       addRemoveButton(p.id);
     }));
 
@@ -277,15 +282,21 @@
     const price = Number(p.price) || 0;
     const hasPromo = Number(p.promo_price) > 0 && Number(p.promo_price) < price;
     const savePct = hasPromo ? Math.round((1 - Number(p.promo_price) / price) * 100) : 0;
+    const isService = p.kind === "service";
+    const money = (v) => (Number(v) > 0 ? U.currency(v, business.currency) : t("catalog.priceOnRequest"));
 
     const badge = $("#pdBadge");
     badge.textContent = cat ? cat.name : "";
     badge.classList.toggle("hidden", !cat);
 
+    const kindEl = $("#pdKind");
+    kindEl.textContent = isService ? t("catalog.service") : "";
+    kindEl.classList.toggle("hidden", !isService);
+
     $("#pdName").textContent = p.name;
     $("#pdPrice").innerHTML = hasPromo
-      ? `<span class="now">${U.currency(p.promo_price, business.currency)}</span><span class="old">${U.currency(price, business.currency)}</span><span class="save">-${savePct}%</span>`
-      : `<span class="now">${U.currency(price, business.currency)}</span>`;
+      ? `<span class="now">${money(p.promo_price)}</span><span class="old">${money(price)}</span><span class="save">-${savePct}%</span>`
+      : `<span class="now">${money(price)}</span>`;
 
     const desc = (p.description || "").trim();
     const dEl = $("#pdDesc");
@@ -294,21 +305,22 @@
 
     $("#pdMeta").innerHTML = `
       <li><span class="pc-ic">🏷️</span><span>${t("catalog.cat")}: <b>${U.escapeHtml(cat ? cat.name : "—")}</b></span></li>
-      <li><span class="pc-ic">💰</span><span>${t("catalog.price")}: <b>${U.currency(price, business.currency)}</b></span></li>
+      <li><span class="pc-ic">💰</span><span>${t("catalog.price")}: <b>${money(price)}</b></span></li>
       ${hasPromo
-        ? `<li><span class="pc-ic">🎁</span><span>${t("catalog.offer")}: <b>${U.currency(p.promo_price, business.currency)}</b></span></li>
+        ? `<li><span class="pc-ic">🎁</span><span>${t("catalog.offer")}: <b>${money(p.promo_price)}</b></span></li>
            <li class="pc-ok"><span class="pc-ic">✅</span><span>${t("catalog.save")}: <b>${savePct}%</b></span></li>`
         : `<li class="pc-ok"><span class="pc-ic">✅</span><span><b>${t("catalog.available")}</b></span></li>`}`;
 
     renderPdImages((p.images || []).filter(Boolean), p.name);
 
     const addBtn = $("#pdAdd");
-    addBtn.textContent = "+ " + t("catalog.addToCart");
+    const addLabel = isService ? t("catalog.request") : t("catalog.addToCart");
+    addBtn.textContent = "+ " + addLabel;
     addBtn.onclick = () => {
       addToCart(p);
       addRemoveButton(p.id);
-      addBtn.textContent = "✓ " + t("catalog.addToCart");
-      setTimeout(() => { addBtn.textContent = "+ " + t("catalog.addToCart"); }, 900);
+      addBtn.textContent = "✓ " + addLabel;
+      setTimeout(() => { addBtn.textContent = "+ " + addLabel; }, 900);
     };
     $("#pdShare").textContent = t("catalog.share");
     $("#pdShare").onclick = () => shareProduct(p.id);
@@ -375,7 +387,7 @@
     const price = p.promo_price || p.price;
     const found = cart.find((i) => i.id === p.id);
     if (found) found.qty += 1;
-    else cart.push({ id: p.id, name: p.name, price: Number(price), qty: 1, image: (p.images && p.images[0]) || "" });
+    else cart.push({ id: p.id, name: p.name, price: Number(price), qty: 1, image: (p.images && p.images[0]) || "", kind: p.kind || "product" });
     saveCart();
   }
 
@@ -415,36 +427,75 @@
     if (!name) { $("#custName").focus(); $("#custName").style.outline = "2px solid var(--danger)"; return; }
 
     const code = "CW-" + Math.random().toString(36).slice(2, 7).toUpperCase();
-    // Mensaje con negrita nativa de WhatsApp (*texto*), sin iconos incompatibles
-    let msg = "*" + t("catalog.orderFor") + " " + business.name + "*\n";
-    msg += "*" + t("ord.code") + ":* " + code + "\n";
-    msg += "*" + t("catalog.name") + ":* " + name + "\n\n";
-    msg += "*" + t("catalog.products") + ":*\n";
-    cart.forEach((i) => {
-      msg += "• " + i.name + " x" + i.qty + " = " + U.currency(i.price * i.qty, business.currency) + "\n";
-    });
-    msg += "\n*" + t("catalog.subtotal") + ":* " + U.currency(cartTotal(), business.currency) + "\n";
-    if (note) msg += "\n*" + t("catalog.note") + ":* " + note + "\n";
-
-    // Entrega y formas de pago configuradas por el negocio
+    const cur = business.currency;
+    const sub = cartTotal();
+    const fee = Number(business.delivery_fee) > 0 ? Number(business.delivery_fee) : 0;
+    const total = sub + fee;
     const dlv = parseTags(business.delivery).map((k) => t(DLV_LABEL[k] || k));
     const pay = parseTags(business.payments).map((k) => t(PAY_LABEL[k] || k));
-    if (dlv.length || business.delivery_time || business.delivery_fee) {
-      msg += "\n*" + t("cfg.delivery") + ":* " + (dlv.join(", ") || "—");
-      if (business.delivery_time) msg += " (" + business.delivery_time + ")";
-      if (business.delivery_fee) msg += " — " + U.currency(business.delivery_fee, business.currency);
-      msg += "\n";
-    }
-    if (pay.length) msg += "*" + t("cfg.payments") + ":* " + pay.join(", ") + "\n";
 
-    msg += "\n" + t("catalog.poweredBy");
+    /* Mensaje organizado por bloques y con negrita nativa de WhatsApp (*texto*). */
+    const L = [];
+
+    // 1) Cabecera
+    L.push("*" + t("order.title") + "*");
+    L.push(business.name);
+    L.push("🧾 " + t("ord.code") + ": *" + code + "*");
+
+    // 2) Cliente
+    L.push("");
+    L.push("👤 *" + t("order.customer") + "*");
+    L.push(name);
+    if (note) L.push("📝 " + note);
+
+    // 3) Productos y servicios
+    L.push("");
+    L.push("🛒 *" + t("order.items") + "*");
+    cart.forEach((i, n) => {
+      L.push((n + 1) + ". " + i.name + (i.kind === "service" ? " _(" + t("catalog.service") + ")_" : ""));
+      if (Number(i.price) > 0) {
+        L.push("    " + i.qty + " × " + U.currency(i.price, cur) + " = *" + U.currency(i.price * i.qty, cur) + "*");
+      } else {
+        L.push("    " + i.qty + " × " + t("catalog.priceOnRequest"));
+      }
+    });
+
+    // 4) Resumen de importes
+    L.push("");
+    L.push("💰 *" + t("order.summary") + "*");
+    if (fee > 0) {
+      L.push(t("order.subtotal") + ": " + U.currency(sub, cur));
+      L.push(t("order.deliveryFee") + ": +" + U.currency(fee, cur));
+    }
+    L.push("*" + t("order.total") + ": " + U.currency(total, cur) + "*");
+
+    // 5) Entrega
+    const dlvLines = [];
+    if (dlv.length) dlvLines.push(dlv.join(", "));
+    if (business.delivery_time) dlvLines.push("⏱ " + business.delivery_time);
+    if (dlvLines.length) {
+      L.push("");
+      L.push("🚚 *" + t("order.deliverySection") + "*");
+      dlvLines.forEach((x) => L.push(x));
+    }
+
+    // 6) Forma de pago
+    if (pay.length) {
+      L.push("");
+      L.push("💳 *" + t("order.paymentSection") + "*");
+      L.push(pay.join(", "));
+    }
+
+    L.push("");
+    L.push("_" + t("catalog.poweredBy") + "_");
+    const msg = L.join("\n");
 
     // Guardar el pedido en el panel del negocio
     try {
       await S.createOrder({
         business_id: business.id, code, customer_name: name, note,
-        items: cart.map((i) => ({ name: i.name, qty: i.qty, price: i.price })),
-        total: cartTotal(), status: "new"
+        items: cart.map((i) => ({ name: i.name, qty: i.qty, price: i.price, kind: i.kind || "product" })),
+        total, status: "new"
       });
     } catch (e) { /* el pedido igual se envía por WhatsApp */ }
 

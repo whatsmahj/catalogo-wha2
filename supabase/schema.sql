@@ -454,3 +454,19 @@ grant execute on function public.admin_business_ranking() to authenticated;
 -- Comprobación rápida (debe devolver datos solo si eres admin):
 --   select public.is_admin();
 -- ===========================================================
+
+
+-- ===========================================================
+-- 12) PRODUCTOS Y SERVICIOS
+-- -----------------------------------------------------------
+-- kind = 'product' (producto físico) | 'service' (servicio)
+-- Un negocio puede tener los dos tipos mezclados en su catálogo.
+-- ===========================================================
+
+alter table public.products add column if not exists kind text not null default 'product';
+
+create index if not exists products_kind_idx on public.products(kind);
+
+-- Comprobación:
+--   select kind, count(*) from public.products group by kind;
+-- ===========================================================

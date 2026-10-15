@@ -355,13 +355,14 @@
   let productDraft = null;
   function viewProductForm(id) {
     const isNew = !id || id === "new";
-    const p = isNew ? { name: "", slug: "", category_id: "", description: "", sort_order: 0, price: "", promo_price: "", images: [], active: true } : state.products.find((x) => x.id === id);
+    const p = isNew ? { name: "", slug: "", category_id: "", description: "", sort_order: 0, price: "", promo_price: "", images: [], active: true, kind: "product" } : state.products.find((x) => x.id === id);
     if (!p) return `<div class="alert alert-error">404</div>`;
     productDraft = {
       id: isNew ? null : p.id,
       name: p.name || "", slug: p.slug || "", category_id: p.category_id || "",
       description: p.description || "", sort_order: p.sort_order || 0,
       price: p.price === undefined ? "" : p.price, promo_price: p.promo_price || "",
+      kind: p.kind || "product",
       images: (p.images || []).slice(0, 5)
     };
     return `
@@ -378,6 +379,12 @@
             <h3>${t("prod.infoSub")}</h3><p class="small">${t("prod.infoSub2")}</p>
             <div class="field"><label>${t("prod.name")}</label><input class="input" id="pName" value="${U.escapeHtml(p.name)}" placeholder="${t("prod.namePh")}"></div>
             <div class="field"><label>${t("prod.url")}</label><input class="input" id="pSlug" value="${U.escapeHtml(p.slug)}"><div class="hint">${t("prod.urlHint")}</div></div>
+            <div class="field"><label>${t("prod.kind")}</label>
+              <select class="select" id="pKind">
+                <option value="product" ${(p.kind || "product") === "product" ? "selected" : ""}>${t("prod.kindProduct")}</option>
+                <option value="service" ${p.kind === "service" ? "selected" : ""}>${t("prod.kindService")}</option>
+              </select>
+              <div class="hint">${t("prod.kindHint")}</div></div>
             <div class="field"><label>${t("prod.category")}</label>
               <select class="select" id="pCat"><option value="">${t("prod.categoryPh")}</option>
               ${state.categories.map((c) => `<option value="${c.id}" ${p.category_id === c.id ? "selected" : ""}>${U.escapeHtml(c.name)}</option>`).join("")}
@@ -473,6 +480,7 @@
         sort_order: parseInt($("#pOrder").value || "0", 10),
         price: parseFloat($("#pPrice").value || "0"),
         promo_price: $("#pPromo").value ? parseFloat($("#pPromo").value) : null,
+        kind: $("#pKind") ? $("#pKind").value : "product",
         active: true,
         images: productDraft.images
       };
@@ -1579,7 +1587,8 @@
     if (!list.length) { tb.innerHTML = `<tbody><tr><td class="muted">${t("adm.empty")}</td></tr></tbody>`; return; }
     tb.innerHTML = `
       <thead><tr>
-        <th>${t("adm.colBusiness")}</th><th>${t("adm.colOwner")}</th><th>${t("adm.colLink")}</th>
+        <th>${t("adm.colBusiness")}</th><th>${t("adm.colOwner")}</th><th>${t("adm.status")}</th>
+        <th>${t("adm.colLink")}</th>
         <th>${t("adm.colData")}</th><th>${t("adm.colCreated")}</th><th>${t("adm.colActions")}</th>
       </tr></thead>
       <tbody>
@@ -1587,12 +1596,15 @@
           <tr>
             <td><strong>${U.escapeHtml(b.name)}</strong><div class="small muted">${U.escapeHtml(b.slug)}</div></td>
             <td class="small">${U.escapeHtml(b.owner_email || "—")}</td>
+            <td>${b.published === false ? `<span class="badge off">${t("adm.hidden")}</span>` : `<span class="badge ok">${t("adm.published")}</span>`}</td>
             <td><a class="small" href="${U.escapeHtml(U.catalogUrl(b.slug))}" target="_blank" rel="noopener">${t("adm.openCatalog")} ↗</a></td>
             <td class="small muted">${(b.counts && b.counts.products) || 0} / ${(b.counts && b.counts.categories) || 0} / ${(b.counts && b.counts.orders) || 0}</td>
             <td class="small muted">${b.created_at ? new Date(b.created_at).toLocaleDateString() : "—"}</td>
             <td>
-              <div class="row" style="gap:6px">
+              <div class="row wrap" style="gap:6px">
                 <button class="btn btn-soft btn-sm" data-adm-view="${U.escapeHtml(b.id)}">${t("adm.detail")}</button>
+                <button class="btn btn-soft btn-sm" data-adm-edit="${U.escapeHtml(b.id)}">${t("adm.edit")}</button>
+                <button class="btn btn-ghost btn-sm" data-adm-pub="${U.escapeHtml(b.id)}">${b.published === false ? t("adm.publish") : t("adm.unpublish")}</button>
                 <button class="btn btn-danger btn-sm" data-adm-del="${U.escapeHtml(b.id)}">${t("adm.delete")}</button>
               </div>
             </td>
@@ -1600,7 +1612,52 @@
       </tbody>`;
 
     $$("[data-adm-view]").forEach((btn) => btn.addEventListener("click", () => openAdminDetail(btn.getAttribute("data-adm-view"))));
+    $$("[data-adm-edit]").forEach((btn) => btn.addEventListener("click", () => openAdminEdit(btn.getAttribute("data-adm-edit"))));
+    $$("[data-adm-pub]").forEach((btn) => btn.addEventListener("click", () => adminTogglePublished(btn.getAttribute("data-adm-pub"))));
     $$("[data-adm-del]").forEach((btn) => btn.addEventListener("click", () => adminDelete(btn.getAttribute("data-adm-del"))));
+  }
+
+  /* Publicar / ocultar el catálogo de una cuenta. */
+  async function adminTogglePublished(id) {
+    const b = (state.adminRows || []).find((x) => x.id === id);
+    if (!b) return;
+    try {
+      await S.adminUpdateBusiness(id, { published: b.published === false });
+      toast(t("adm.saved"));
+      await loadAdminRows();
+    } catch (e) { toast((e && e.message) || t("common.error"), "error"); }
+  }
+
+  /* Editar los datos básicos de una cuenta. */
+  function openAdminEdit(id) {
+    const b = (state.adminRows || []).find((x) => x.id === id);
+    if (!b) return;
+    openModal(t("adm.editTitle"), `
+      <div class="field"><label>${t("adm.name")}</label><input class="input" id="admEditName" value="${U.escapeHtml(b.name || "")}"></div>
+      <div class="field"><label>${t("adm.whatsapp")}</label><input class="input" id="admEditWa" value="${U.escapeHtml(b.whatsapp || "")}"></div>
+      <div class="field"><label>${t("adm.status")}</label>
+        <select class="select" id="admEditPub">
+          <option value="true" ${b.published === false ? "" : "selected"}>${t("adm.published")}</option>
+          <option value="false" ${b.published === false ? "selected" : ""}>${t("adm.hidden")}</option>
+        </select></div>
+      <div class="row mt-3" style="justify-content:flex-end">
+        <button class="btn btn-ghost" data-close>${t("common.cancel")}</button>
+        <button class="btn btn-primary" id="admEditGo">${t("adm.save")}</button>
+      </div>`);
+    $("#admEditGo").addEventListener("click", async () => {
+      const name = $("#admEditName").value.trim();
+      if (!name) { toast(t("common.required"), "error"); return; }
+      try {
+        await S.adminUpdateBusiness(id, {
+          name,
+          whatsapp: $("#admEditWa").value.trim(),
+          published: $("#admEditPub").value === "true"
+        });
+        closeModal();
+        toast(t("adm.saved"));
+        await loadAdminRows();
+      } catch (e) { toast((e && e.message) || t("common.error"), "error"); }
+    });
   }
 
   async function openAdminDetail(id) {

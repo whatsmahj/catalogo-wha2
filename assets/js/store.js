@@ -641,6 +641,21 @@
     };
   }
 
+  async function adminUpdateBusiness(id, patch) {
+    init();
+    if (isDemo()) {
+      const d = db();
+      const b = d.businesses.find((x) => x.id === id);
+      if (!b) return null;
+      Object.assign(b, patch);
+      saveDb(d);
+      return b;
+    }
+    const { data, error } = await sb.from("businesses").update(patch).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  }
+
   /* ---------- DIAGNÓSTICO ---------- */
   async function diagnose() {
     const out = [];
@@ -702,7 +717,7 @@
     listProducts, saveProduct, deleteProduct,
     listOrders, createOrder, updateOrderStatus,
     listLibrary, uploadImage, deleteImage, fileToDataUrl,
-    isAdmin, adminOverview, adminBusinessDetail, adminDeleteBusiness,
+    isAdmin, adminOverview, adminBusinessDetail, adminDeleteBusiness, adminUpdateBusiness,
     trackProductView, adminMetrics, diagnose
   };
 })();
