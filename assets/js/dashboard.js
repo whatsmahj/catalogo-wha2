@@ -234,7 +234,7 @@
     return `
       <div class="page-head"><div class="small muted">${t("dash.home")} / ${t("ord.title")}</div><h1>${t("ord.title")}</h1><p>${t("ord.sub")}</p></div>
       <div class="card mb-3">
-        <div class="grid cols-3" style="align-items:end">
+        <div class="grid cols-4" style="align-items:end">
           <div class="field" style="margin:0"><label>${t("ord.code")}</label><input class="input" id="ordCode" placeholder="${t("ord.codePh")}"></div>
           <div class="field" style="margin:0"><label>${t("ord.status")}</label>
             <select class="select" id="ordStatus">
@@ -244,7 +244,14 @@
               <option value="delivered">${t("ord.status.delivered")}</option>
               <option value="cancelled">${t("ord.status.cancelled")}</option>
             </select></div>
+          <div class="field" style="margin:0"><label>${t("ord.from")}</label><input class="input" id="ordFrom" type="date"></div>
+          <div class="field" style="margin:0"><label>${t("ord.to")}</label><input class="input" id="ordTo" type="date"></div>
+        </div>
+        <div class="row wrap mt-2" style="gap:10px">
           <button class="btn btn-primary" id="ordSearch">${t("ord.search")}</button>
+          <button class="btn btn-ghost" id="ordClear">${t("ord.clear")}</button>
+          <div class="spacer"></div>
+          <button class="btn btn-soft" id="ordExport">${t("ord.export")}</button>
         </div>
       </div>
       <div class="table-wrap">
@@ -261,21 +268,82 @@
         <td><strong>${U.escapeHtml(o.code)}</strong></td>
         <td>${U.escapeHtml(o.customer_name || "—")}${o.customer_phone ? `<div class="small muted">${U.escapeHtml(o.customer_phone)}</div>` : ""}</td>
         <td>${U.currency(o.total, state.business.currency)}</td>
-        <td class="small muted">${new Date(o.created_at).toLocaleString()}</td>
+        <td class="small muted">${new Date(o.created_at).toLocaleString()}${o.appointment_at ? `<div style="color:var(--brand-600);font-weight:700">${t("order.appointment")}: ${new Date(o.appointment_at).toLocaleString()}</div>` : ""}</td>
         <td><span class="badge ${o.status === "new" ? "info" : o.status === "delivered" ? "ok" : o.status === "cancelled" ? "warn" : "ok"}">${t("ord.status." + (o.status || "new"))}</span></td>
         <td><button class="btn btn-ghost btn-sm" data-order="${o.id}">${t("prod.edit")}</button></td>
       </tr>`).join("")}</tbody></table></div>`;
   }
-  function bindOrders() {
-    $("#ordSearch").addEventListener("click", () => {
-      const code = $("#ordCode").value.trim().toLowerCase();
-      const st = $("#ordStatus").value;
-      const list = state.orders.filter((o) =>
-        (!code || (o.code || "").toLowerCase().includes(code)) && (!st || o.status === st));
-      $("#ordBody").innerHTML = ordersTable(list);
-      $("#ordCount").textContent = list.length;
-      bindOrderRows();
+  /* Lista filtrada actual (la usa también la exportación). */
+  let ordersFiltered = [];
+
+  function filterOrders() {
+    const code = (($("#ordCode") || {}).value || "").trim().toLowerCase();
+    const st = ($("#ordStatus") || {}).value || "";
+    const from = ($("#ordFrom") || {}).value || "";
+    const to = ($("#ordTo") || {}).value || "";
+    return state.orders.filter((o) => {
+      if (code) {
+        const hay = [(o.code || ""), (o.customer_name || ""), (o.customer_phone || "")].join(" ").toLowerCase();
+        if (hay.indexOf(code) < 0) return false;
+      }
+      if (st && o.status !== st) return false;
+      const d = o.created_at ? new Date(o.created_at) : null;
+      if (from && (!d || d < new Date(from + "T00:00:00"))) return false;
+      if (to && (!d || d > new Date(to + "T23:59:59"))) return false;
+      return true;
     });
+  }
+
+  function applyOrdersFilter() {
+    ordersFiltered = filterOrders();
+    const body = $("#ordBody");
+    if (body) body.innerHTML = ordersTable(ordersFiltered);
+    const cnt = $("#ordCount");
+    if (cnt) cnt.textContent = ordersFiltered.length;
+    bindOrderRows();
+  }
+
+  /* Exporta a CSV (separador ";" y BOM, para que Excel abra bien los acentos). */
+  function exportOrdersCsv(list) {
+    if (!list.length) { toast(t("ord.empty")); return; }
+    const head = [t("ord.code"), t("order.name"), t("order.phone"), t("order.address"), t("order.city"),
+      t("order.appointment"), t("ord.total"), t("ord.status"), t("order.note"), t("ord.date")];
+    const rows = [head].concat(list.map((o) => [
+      o.code || "", o.customer_name || "", o.customer_phone || "", o.customer_address || "", o.customer_city || "",
+      o.appointment_at ? new Date(o.appointment_at).toLocaleString() : "",
+      String(o.total || 0),
+      t("ord.status." + (o.status || "new")),
+      o.note || "",
+      o.created_at ? new Date(o.created_at).toLocaleString() : ""
+    ]));
+    const csv = rows.map((r) => r.map((c) => '"' + String(c).replace(/"/g, '""') + '"').join(";")).join("\r\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "pedidos-" + (state.business.slug || "catalogo") + "-" + new Date().toISOString().slice(0, 10) + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+    toast(t("ord.exported"));
+  }
+
+  function bindOrders() {
+    ["#ordCode", "#ordStatus", "#ordFrom", "#ordTo"].forEach((sel) => {
+      const el = $(sel);
+      if (!el) return;
+      el.addEventListener("input", applyOrdersFilter);
+      el.addEventListener("change", applyOrdersFilter);
+    });
+    const s = $("#ordSearch"); if (s) s.addEventListener("click", applyOrdersFilter);
+    const c = $("#ordClear");
+    if (c) c.addEventListener("click", () => {
+      ["#ordCode", "#ordFrom", "#ordTo"].forEach((x) => { const el = $(x); if (el) el.value = ""; });
+      const st = $("#ordStatus"); if (st) st.value = "";
+      applyOrdersFilter();
+    });
+    const e = $("#ordExport"); if (e) e.addEventListener("click", () => exportOrdersCsv(ordersFiltered));
+    ordersFiltered = state.orders;
     bindOrderRows();
   }
   function bindOrderRows() {
@@ -288,6 +356,7 @@
         <p><strong>${t("order.address")}:</strong> ${U.escapeHtml(o.customer_address || "—")}</p>
         <p><strong>${t("order.city")}:</strong> ${U.escapeHtml(o.customer_city || "—")}</p>
         <p><strong>${t("order.note")}:</strong> ${U.escapeHtml(o.note || "—")}</p>
+        ${o.appointment_at ? `<p><strong>${t("order.appointment")}:</strong> ${new Date(o.appointment_at).toLocaleString()}</p>` : ""}
         ${o.customer_phone ? `<a class="btn btn-wa btn-block mb-2" href="${U.escapeHtml(U.waLink(o.customer_phone, t("ord.hello") + " " + (o.customer_name || "")))}" target="_blank" rel="noopener">${t("ord.contact")}</a>` : ""}
         <table style="margin:12px 0">${(o.items || []).map((i) => `<tr><td>${U.escapeHtml(i.name)} × ${i.qty}</td><td style="text-align:end">${U.currency(i.price * i.qty, state.business.currency)}</td></tr>`).join("")}</table>
         <p style="text-align:end"><strong>${t("catalog.subtotal")}: ${U.currency(o.total, state.business.currency)}</strong></p>
@@ -372,7 +441,7 @@
       description: p.description || "", sort_order: p.sort_order || 0,
       price: p.price === undefined ? "" : p.price, promo_price: p.promo_price || "",
       kind: p.kind || "product",
-      duration: p.duration || "", modality: p.modality || "",
+      duration: p.duration || "", modality: p.modality || "", bookable: !!p.bookable,
       images: (p.images || []).slice(0, 5)
     };
     return `
@@ -401,6 +470,12 @@
                   <input class="input" id="pDuration" value="${U.escapeHtml(p.duration || "")}" placeholder="${t("prod.durationPh")}"></div>
                 <div class="field"><label>${t("prod.modality")} (${t("common.optional")})</label>
                   <input class="input" id="pModality" value="${U.escapeHtml(p.modality || "")}" placeholder="${t("prod.modalityPh")}"></div>
+              </div>
+              <div class="field" style="margin-top:12px">
+                <label style="display:flex;align-items:center;gap:9px;cursor:pointer;text-transform:none">
+                  <input type="checkbox" id="pBookable" ${p.bookable ? "checked" : ""}> ${t("prod.bookable")}
+                </label>
+                <div class="hint">${t("prod.bookableHint")}</div>
               </div>
             </div>
             <div class="field"><label>${t("prod.category")}</label>
@@ -510,6 +585,7 @@
         kind: $("#pKind") ? $("#pKind").value : "product",
         duration: $("#pDuration") ? ($("#pDuration").value.trim() || null) : null,
         modality: $("#pModality") ? ($("#pModality").value.trim() || null) : null,
+        bookable: $("#pBookable") ? $("#pBookable").checked : false,
         active: true,
         images: productDraft.images
       };

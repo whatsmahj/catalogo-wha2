@@ -8,7 +8,7 @@
    Si no, el navegador sigue sirviendo los archivos viejos desde caché
    mientras el HTML sí se actualiza, y la página se rompe.
    =========================================================== */
-const CACHE_VERSION = 5;
+const CACHE_VERSION = 6;
 const CACHE = "catalogo-wha-v" + CACHE_VERSION;
 const ASSETS = [
   "/",

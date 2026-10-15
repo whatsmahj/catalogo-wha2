@@ -220,7 +220,7 @@
       const cat = categories.find((c) => c.id === p.category_id);
       const img = (p.images && p.images[0]) || "";
       const isService = p.kind === "service";
-      const addLabel = isService ? t("catalog.request") : t("catalog.addToCart");
+      const addLabel = isService ? (p.bookable ? t("catalog.book") : t("catalog.request")) : t("catalog.addToCart");
       const hasPromo = Number(p.promo_price) > 0 && Number(p.promo_price) < Number(p.price);
       const savePct = hasPromo ? Math.round((1 - Number(p.promo_price) / Number(p.price)) * 100) : 0;
       const inCart = cart.some((i) => i.id === p.id);
@@ -326,7 +326,7 @@
     renderPdImages((p.images || []).filter(Boolean), p.name);
 
     const addBtn = $("#pdAdd");
-    const addLabel = isService ? t("catalog.request") : t("catalog.addToCart");
+    const addLabel = isService ? (p.bookable ? t("catalog.book") : t("catalog.request")) : t("catalog.addToCart");
     addBtn.textContent = "+ " + addLabel;
     addBtn.onclick = () => {
       addToCart(p);
@@ -399,7 +399,7 @@
     const price = p.promo_price || p.price;
     const found = cart.find((i) => i.id === p.id);
     if (found) found.qty += 1;
-    else cart.push({ id: p.id, name: p.name, price: Number(price), qty: 1, image: (p.images && p.images[0]) || "", kind: p.kind || "product" });
+    else cart.push({ id: p.id, name: p.name, price: Number(price), qty: 1, image: (p.images && p.images[0]) || "", kind: p.kind || "product", bookable: !!p.bookable });
     saveCart();
   }
 
@@ -408,6 +408,11 @@
     fab.classList.toggle("hidden", cart.length === 0);
     $("#cartCount").textContent = cartCount();
     $("#cartTotal").textContent = U.currency(cartTotal(), business ? business.currency : "");
+
+    /* Los campos de cita solo salen si el pedido lleva algún servicio reservable. */
+    const af = $("#apptFields");
+    if (af) af.classList.toggle("hidden", !cart.some((i) => i.bookable));
+
     const c = $("#cartContent");
     if (!cart.length) {
       c.innerHTML = `<div class="empty"><div class="ico">🛒</div><h3>${t("catalog.emptyCart")}</h3><p>${t("catalog.emptyCartSub")}</p></div>`;
@@ -439,19 +444,25 @@
     const address = $("#custAddress").value.trim();
     const city = $("#custCity").value.trim();
     const note = $("#custNote").value.trim();
+    const needsAppt = cart.some((i) => i.bookable);
+    const date = ($("#custDate") || {}).value || "";
+    const time = ($("#custTime") || {}).value || "";
 
-    /* Nombre y teléfono son obligatorios: sin ellos no se puede cerrar el pedido. */
+    /* Nombre y teléfono son obligatorios. Si hay un servicio reservable,
+       también hay que elegir el día de la cita. */
     const faltan = [];
     if (!name) { faltan.push($("#custName")); }
     if (!phone) { faltan.push($("#custPhone")); }
+    if (needsAppt && !date) { faltan.push($("#custDate")); }
     if (faltan.length) {
       faltan.forEach((el) => { el.style.outline = "2px solid var(--danger)"; });
       faltan[0].focus();
       return;
     }
-    ["#custName", "#custPhone"].forEach((s) => { $(s).style.outline = ""; });
+    ["#custName", "#custPhone", "#custDate"].forEach((s) => { $(s).style.outline = ""; });
 
     const code = "CW-" + Math.random().toString(36).slice(2, 7).toUpperCase();
+    const apptAt = needsAppt && date ? new Date(date + "T" + (time || "09:00") + ":00") : null;
     const cur = business.currency;
     const sub = cartTotal();
     const fee = Number(business.delivery_fee) > 0 ? Number(business.delivery_fee) : 0;
@@ -478,6 +489,14 @@
     campo(t("order.address"), address);
     campo(t("order.city"), city);
     campo(t("order.note"), note);
+
+    // 2b) Cita (solo si el pedido lleva algún servicio reservable)
+    if (apptAt) {
+      L.push(sep);
+      L.push("*" + t("order.appointment") + "*");
+      L.push(t("order.date") + ": " + apptAt.toLocaleDateString());
+      if (time) L.push(t("order.hour") + ": " + time);
+    }
     L.push(sep);
 
     // 3) Artículos (productos y servicios)
@@ -527,6 +546,7 @@
         business_id: business.id, code,
         customer_name: name, note,
         customer_phone: phone, customer_address: address, customer_city: city,
+        appointment_at: apptAt ? apptAt.toISOString() : null,
         items: cart.map((i) => ({ name: i.name, qty: i.qty, price: i.price, kind: i.kind || "product" })),
         total, status: "new"
       });
@@ -536,7 +556,7 @@
     cart = [];
     saveCart();
     $("#cartDrawer").classList.remove("open");
-    ["#custName", "#custPhone", "#custAddress", "#custCity", "#custNote"].forEach((s) => { $(s).value = ""; });
+    ["#custName", "#custPhone", "#custAddress", "#custCity", "#custNote", "#custDate", "#custTime"].forEach((s) => { const el = $(s); if (el) el.value = ""; });
   }
 
   document.addEventListener("DOMContentLoaded", boot);
