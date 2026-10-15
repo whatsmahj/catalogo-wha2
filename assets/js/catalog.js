@@ -14,6 +14,8 @@
   let business = null, categories = [], products = [];
   let cart = []; // {id, name, price, qty, image}
   let filterCat = "";
+  let filterProd = "";
+  let filterServ = "";
   let search = "";
   let sortBy = "default";
   /* Precio efectivo (el que paga el cliente): oferta si la hay. */
@@ -69,7 +71,10 @@
     renderProducts();
     renderCart();
 
-    $("#catSelect").addEventListener("change", (e) => { filterCat = e.target.value; renderProducts(); });
+    const selP = $("#catSelectProd");
+    if (selP) selP.addEventListener("change", (e) => { filterProd = e.target.value; renderProducts(); });
+    const selS = $("#catSelectServ");
+    if (selS) selS.addEventListener("change", (e) => { filterServ = e.target.value; renderProducts(); });
     const dIn = $("#custDate");
     if (dIn) dIn.addEventListener("change", checkWorkDay);
     $("#sortSelect").addEventListener("change", (e) => { sortBy = e.target.value; renderProducts(); });
@@ -166,19 +171,33 @@
 
   /* ---------- Chips de categorías ---------- */
   /* Filtro de categorías: un desplegable compacto (sin fila deslizable). */
+  /* Dos selectores independientes: uno de categorías de productos y otro
+     de categorías de servicios. Si una categoría tiene productos de los dos
+     tipos, aparece en los dos. */
   function renderChips() {
-    const sel = $("#catSelect");
-    if (!sel) return;
-    /* Número de productos de cada categoría: «Ropa (12)». */
-    const countFor = (id) => (id ? products.filter((p) => p.category_id === id).length : products.length);
-    const opt = (c) => `<option value="${U.escapeHtml(c.id)}">${U.escapeHtml(c.name)} (${countFor(c.id)})</option>`;
     const prod = categories.filter((c) => (c.kind || "product") === "product");
     const serv = categories.filter((c) => c.kind === "service");
-    let html = opt({ id: "", name: t("catalog.all") });
-    if (prod.length) html += `<optgroup label="${t("cat.groupProducts")}">${prod.map(opt).join("")}</optgroup>`;
-    if (serv.length) html += `<optgroup label="${t("cat.groupServices")}">${serv.map(opt).join("")}</optgroup>`;
-    sel.innerHTML = html;
-    sel.value = filterCat || "";
+    const countFor = (id) => products.filter((p) => p.category_id === id).length;
+    const opt = (c) => `<option value="${U.escapeHtml(c.id)}">${U.escapeHtml(c.name)} (${countFor(c.id)})</option>`;
+    const all = `<option value="">${t("catalog.all")} (${products.length})</option>`;
+
+    const selP = $("#catSelectProd");
+    if (selP) {
+      selP.innerHTML = all + prod.map(opt).join("");
+      selP.value = filterProd;
+      if (selP.value !== filterProd) { filterProd = ""; selP.value = ""; }
+    }
+    const selS = $("#catSelectServ");
+    if (selS) {
+      selS.innerHTML = all + serv.map(opt).join("");
+      selS.value = filterServ;
+      if (selS.value !== filterServ) { filterServ = ""; selS.value = ""; }
+    }
+
+    /* El selector solo se muestra si el negocio tiene categorías de ese tipo. */
+    const fp = $("#catFilterProd"), fs = $("#catFilterServ");
+    if (fp) fp.classList.toggle("hidden", prod.length === 0);
+    if (fs) fs.classList.toggle("hidden", serv.length === 0);
   }
 
   /* Filas de datos de la tarjeta. Son DISTINTAS para productos y servicios:
@@ -211,6 +230,15 @@
   /* ---------- Productos ---------- */
   function renderProducts() {
     let list = products.slice();
+    /* Si eliges una categoría, se muestra SOLO ese tipo (productos o servicios),
+       nunca los dos mezclados. Con los dos selectores en "Todos" se ve todo. */
+    if (filterProd || filterServ) {
+      list = list.filter((p) => {
+        const isService = p.kind === "service";
+        if (isService) return filterServ ? p.category_id === filterServ : false;
+        return filterProd ? p.category_id === filterProd : false;
+      });
+    }
     if (filterCat) list = list.filter((p) => p.category_id === filterCat);
     if (search) list = list.filter((p) => (p.name || "").toLowerCase().includes(search) || (p.description || "").toLowerCase().includes(search));
     if (sortBy === "price-asc") list.sort((a, b) => effPrice(a) - effPrice(b) || (a.sort_order || 0) - (b.sort_order || 0));
@@ -285,13 +313,57 @@
     if (btn) btn.remove();
   }
 
-  /* Comparte el producto por WhatsApp (sin destinatario: abre el selector). */
+  /* Comparte el producto por WhatsApp con un texto útil:
+     nombre, precio (con la rebaja), descripción, datos según el tipo,
+     contacto del negocio y enlace directo al catálogo. */
   function shareProduct(id) {
     const p = products.find((x) => x.id === id);
     if (!p) return;
+    const cat = categories.find((c) => c.id === p.category_id);
+    const isService = p.kind === "service";
+    const price = Number(p.price) || 0;
+    const hasPromo = Number(p.promo_price) > 0 && Number(p.promo_price) < price;
+    const savePct = hasPromo ? Math.round((1 - Number(p.promo_price) / price) * 100) : 0;
     const url = location.origin + location.pathname + "?b=" + encodeURIComponent(business.slug);
-    const msg = "*" + p.name + "*\n" + U.currency(effPrice(p), business.currency) + "\n" + url;
-    window.open(U.waLink("", msg), "_blank");
+    const L = [];
+
+    // Título y precio
+    L.push("*" + p.name + "*");
+    if (hasPromo) {
+      L.push(U.currency(p.promo_price, business.currency) +
+        " (" + t("catalog.before") + " " + U.currency(price, business.currency) + " · -" + savePct + "%)");
+    } else if (price > 0) {
+      L.push(U.currency(price, business.currency));
+    } else {
+      L.push(t("catalog.priceOnRequest"));
+    }
+
+    // Descripción (recortada para no hacer un mensaje enorme)
+    const desc = (p.description || "").trim();
+    if (desc) {
+      L.push("");
+      L.push(desc.length > 220 ? desc.slice(0, 220).trim() + "…" : desc);
+    }
+
+    // Datos relevantes según sea producto o servicio
+    const datos = [];
+    if (cat) datos.push(t("catalog.cat") + ": " + cat.name);
+    if (isService) {
+      if (p.duration) datos.push(t("catalog.duration") + ": " + p.duration);
+      if (p.modality) datos.push(t("catalog.modality") + ": " + p.modality);
+    } else if (hasPromo) {
+      datos.push(t("catalog.save") + ": " + savePct + "%");
+    }
+    if (datos.length) { L.push(""); datos.forEach((d) => L.push(d)); }
+
+    // Negocio, contacto y enlace
+    L.push("");
+    L.push("*" + business.name + "*");
+    const wa = String(business.whatsapp || "").replace(/\D/g, "");
+    if (wa) L.push(t("order.phone") + ": +" + wa);
+    L.push(url);
+
+    window.open(U.waLink("", L.join("\n")), "_blank");
   }
 
   /* ---------- Ficha de producto ---------- */
