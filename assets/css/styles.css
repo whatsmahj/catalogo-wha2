@@ -319,6 +319,12 @@ section.alt { background: #fff; }
   background: linear-gradient(120deg, #fff, var(--brand-050));
   border: 1px solid var(--line); border-radius: var(--radius); padding: 26px 28px; margin-bottom: 22px;
 }
+.page-head-row { display: flex; align-items: center; gap: 16px; }
+@media (max-width: 640px) {
+  .page-head { padding: 20px 18px; }
+  .page-head-row { flex-wrap: wrap; gap: 12px; }
+  .page-head-row > .btn { width: 100%; justify-content: center; }
+}
 .page-head h1 { font-size: 2rem; margin-bottom: 4px; }
 .page-head p { margin: 0; }
 

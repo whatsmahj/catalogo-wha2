@@ -300,7 +300,7 @@
     const total = state.products.length;
     const active = state.products.filter((p) => p.active !== false).length;
     return `
-      <div class="page-head" style="display:flex;align-items:center;gap:16px">
+      <div class="page-head page-head-row">
         <div><div class="small muted">${t("dash.home")} / ${t("prod.title")}</div><h1>${t("prod.title")}</h1><p>${t("prod.sub")}</p></div>
         <div class="spacer"></div>
         <a class="btn btn-primary" href="#product/new">+ ${t("prod.new")}</a>
@@ -365,7 +365,7 @@
       images: (p.images || []).slice(0, 5)
     };
     return `
-      <div class="page-head" style="display:flex;align-items:center;gap:16px">
+      <div class="page-head page-head-row">
         <div><div class="small muted">${t("prod.title")} / ${isNew ? t("prod.new") : t("prod.edit")}</div>
           <h1>${isNew ? t("prod.new") : t("prod.edit")}</h1><p>${t("prod.newSub")}</p></div>
         <div class="spacer"></div>
@@ -489,7 +489,7 @@
   /* ==================== VISTA: CATEGORÍAS ==================== */
   function viewCategories() {
     return `
-      <div class="page-head" style="display:flex;align-items:center;gap:16px">
+      <div class="page-head page-head-row">
         <div><div class="small muted">${t("dash.home")} / ${t("cat.title")}</div><h1>${t("cat.title")}</h1><p>${t("cat.sub")}</p></div>
         <div class="spacer"></div><a class="btn btn-primary" href="#category/new">+ ${t("cat.add")}</a>
       </div>
@@ -530,7 +530,7 @@
     const c = isNew ? { name: "", slug: "", sort_order: 0, image_url: "", alt: "" } : state.categories.find((x) => x.id === id);
     if (!c) return `<div class="alert alert-error">404</div>`;
     return `
-      <div class="page-head" style="display:flex;align-items:center;gap:16px">
+      <div class="page-head page-head-row">
         <div><div class="small muted">${t("cat.title")} / ${isNew ? t("cat.new") : t("prod.edit")}</div><h1>${isNew ? t("cat.new") : t("prod.edit")}</h1><p>${t("cat.newSub")}</p></div>
         <div class="spacer"></div><a class="btn btn-ghost" href="#categories">← ${t("cfg.back")}</a>
       </div>
@@ -691,7 +691,15 @@
     return `
       <div class="page-head"><h1>${t("cfg.title")}</h1><p>${t("cfg.sub")}</p></div>
       <div class="row wrap mb-3" id="cfgTabs">
-        ${tabs.map((tb) => `<button class="chip ${tb.key === "all" ? "active" : ""}" data-filter="${tb.key}">${tb.label}</button>`).join("")}
+        <div class="cat-filter">
+          <label class="cat-filter-label" for="cfgFilter" data-i18n="cfg.filter">${t("cfg.filter")}</label>
+          <div class="select-wrap">
+            <select class="cat-select" id="cfgFilter">
+              ${tabs.map((tb) => `<option value="${tb.key}">${U.escapeHtml(tb.label)}</option>`).join("")}
+            </select>
+            <span class="select-arrow" aria-hidden="true"></span>
+          </div>
+        </div>
       </div>
       <div class="grid cols-3" id="cfgGrid">
         ${card("config-business", "general", "📄", t("cfg.businessInfo"), t("cfg.businessInfoSub"), t("cfg.configure"), done)}
@@ -707,12 +715,10 @@
       <div class="empty hidden" id="cfgEmpty"><div class="ico">🗂️</div><p>${t("cfg.emptyFilter")}</p></div>`;
   }
   function bindConfig() {
-    const tabs = $$("#cfgTabs .chip");
+    const sel = $("#cfgFilter");
     const cards = $$("#cfgGrid .config-card");
     const empty = $("#cfgEmpty");
-    tabs.forEach((chip) => chip.addEventListener("click", () => {
-      const f = chip.getAttribute("data-filter");
-      tabs.forEach((c) => c.classList.toggle("active", c === chip));
+    function applyFilter(f) {
       let visible = 0;
       cards.forEach((c) => {
         const groups = (c.getAttribute("data-groups") || "").split(",");
@@ -721,7 +727,12 @@
         if (show) visible++;
       });
       if (empty) empty.classList.toggle("hidden", visible > 0);
-    }));
+    }
+    if (sel) {
+      sel.value = "all";
+      sel.addEventListener("change", () => applyFilter(sel.value));
+      applyFilter("all");
+    }
   }
 
   function configHead(title, sub) {
@@ -1649,7 +1660,17 @@
       </div>
       <div id="admMetrics"><div class="card muted">${t("adm.loading")}</div></div>`;
   }
-  function bindAdminMetrics() { loadAdminMetrics(); }
+  let metricsResizeBound = false;
+  function bindAdminMetrics() {
+    loadAdminMetrics();
+    if (metricsResizeBound) return;
+    metricsResizeBound = true;
+    let tmr = null;
+    window.addEventListener("resize", () => {
+      clearTimeout(tmr);
+      tmr = setTimeout(() => { if ($("#admMetrics")) loadAdminMetrics(); }, 250);
+    });
+  }
 
   async function loadAdminMetrics() {
     const box = $("#admMetrics");
@@ -1663,19 +1684,24 @@
 
   /* Gráfico de barras en SVG puro (sin librerías externas). */
   function barChart(rows) {
-    const w = 760, h = 240, padL = 36, padR = 12, padT = 18, padB = 34;
+    /* Se adapta al ancho: en móvil usa un lienzo estrecho para que las
+       etiquetas no queden ilegibles al escalar el SVG. */
+    const narrow = window.innerWidth <= 640;
+    const w = narrow ? 360 : 760, h = narrow ? 236 : 240;
+    const padL = narrow ? 28 : 36, padR = 10, padT = 18, padB = 34;
+    const fs = narrow ? 11 : 10;
     const n = rows.length || 1;
     const max = Math.max(1, ...rows.map((r) => r.total));
     const step = Math.max(1, Math.ceil(max / 4));
     const top = Math.max(step, Math.ceil(max / step) * step);
     const innerW = w - padL - padR, innerH = h - padT - padB;
-    const gap = 10;
+    const gap = narrow ? 6 : 10;
     const bw = Math.max(6, (innerW - gap * (n - 1)) / n);
     let svg = "";
     for (let v = 0; v <= top; v += step) {
       const y = padT + innerH - (v / top) * innerH;
       svg += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${w - padR}" y2="${y.toFixed(1)}" style="stroke:#ece9f3;stroke-width:1"/>`;
-      svg += `<text x="${padL - 8}" y="${(y + 4).toFixed(1)}" text-anchor="end" style="font-size:10px;fill:#6b6580">${v}</text>`;
+      svg += `<text x="${padL - 6}" y="${(y + 3).toFixed(1)}" text-anchor="end" style="font-size:${fs}px;fill:#6b6580">${v}</text>`;
     }
     rows.forEach((r, i) => {
       const bh = (r.total / top) * innerH;
@@ -1684,8 +1710,8 @@
       const cx = x + bw / 2;
       svg += `<g><title>${r.month}: ${r.total}</title>`
         + `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(bh, r.total ? 3 : 0).toFixed(1)}" rx="4" style="fill:#7c3aed"/>`
-        + `<text x="${cx.toFixed(1)}" y="${h - 16}" text-anchor="middle" style="font-size:10px;fill:#6b6580">${r.month.slice(5)}</text>`
-        + `<text x="${cx.toFixed(1)}" y="${h - 4}" text-anchor="middle" style="font-size:9px;fill:#a29db5">${r.month.slice(2, 4)}</text>`
+        + `<text x="${cx.toFixed(1)}" y="${h - 16}" text-anchor="middle" style="font-size:${fs}px;fill:#6b6580">${r.month.slice(5)}</text>`
+        + `<text x="${cx.toFixed(1)}" y="${h - 4}" text-anchor="middle" style="font-size:${fs - 1}px;fill:#a29db5">${r.month.slice(2, 4)}</text>`
         + `</g>`;
     });
     return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="max-width:100%;height:auto;display:block" role="img" aria-label="${U.escapeHtml(t("adm.signups"))}">${svg}</svg>`;

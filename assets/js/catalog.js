@@ -155,9 +155,11 @@
   function renderChips() {
     const sel = $("#catSelect");
     if (!sel) return;
+    /* Número de productos de cada categoría: «Ropa (12)». */
+    const countFor = (id) => (id ? products.filter((p) => p.category_id === id).length : products.length);
     const items = [{ id: "", name: t("catalog.all") }].concat(categories);
     sel.innerHTML = items.map((c) =>
-      `<option value="${U.escapeHtml(c.id)}">${U.escapeHtml(c.name)}</option>`).join("");
+      `<option value="${U.escapeHtml(c.id)}">${U.escapeHtml(c.name)} (${countFor(c.id)})</option>`).join("");
     sel.value = filterCat || "";
   }
 
