@@ -175,6 +175,33 @@
     sel.value = filterCat || "";
   }
 
+  /* Filas de datos de la tarjeta. Son DISTINTAS para productos y servicios:
+     un servicio no tiene "oferta" ni "ahorro", pero sí duración y modalidad. */
+  function metaRowsHtml(p, cat) {
+    const isService = p.kind === "service";
+    const price = Number(p.price) || 0;
+    const hasPromo = Number(p.promo_price) > 0 && Number(p.promo_price) < price;
+    const savePct = hasPromo ? Math.round((1 - Number(p.promo_price) / price) * 100) : 0;
+    const money = (v) => (Number(v) > 0 ? U.currency(v, business.currency) : t("catalog.priceOnRequest"));
+    const li = (ic, label, val, cls) =>
+      `<li${cls ? ` class="${cls}"` : ""}><span class="pc-ic">${ic}</span><span>${label}: <b>${val}</b></span></li>`;
+
+    const rows = [li("🏷️", t("catalog.cat"), U.escapeHtml(cat ? cat.name : "—"))];
+    rows.push(li("💰", t("catalog.price"), money(p.price)));
+
+    if (isService) {
+      if (p.duration) rows.push(li("⏱", t("catalog.duration"), U.escapeHtml(p.duration)));
+      if (p.modality) rows.push(li("📍", t("catalog.modality"), U.escapeHtml(p.modality)));
+      rows.push(`<li class="pc-ok"><span class="pc-ic">✅</span><span><b>${t("catalog.available")}</b></span></li>`);
+    } else if (hasPromo) {
+      rows.push(li("🎁", t("catalog.offer"), money(p.promo_price)));
+      rows.push(`<li class="pc-ok"><span class="pc-ic">✅</span><span>${t("catalog.save")}: <b>${savePct}%</b></span></li>`);
+    } else {
+      rows.push(`<li class="pc-ok"><span class="pc-ic">✅</span><span><b>${t("catalog.available")}</b></span></li>`);
+    }
+    return rows.join("");
+  }
+
   /* ---------- Productos ---------- */
   function renderProducts() {
     let list = products.slice();
@@ -194,7 +221,6 @@
       const img = (p.images && p.images[0]) || "";
       const isService = p.kind === "service";
       const addLabel = isService ? t("catalog.request") : t("catalog.addToCart");
-      const money = (v) => (Number(v) > 0 ? U.currency(v, business.currency) : t("catalog.priceOnRequest"));
       const hasPromo = Number(p.promo_price) > 0 && Number(p.promo_price) < Number(p.price);
       const savePct = hasPromo ? Math.round((1 - Number(p.promo_price) / Number(p.price)) * 100) : 0;
       const inCart = cart.some((i) => i.id === p.id);
@@ -207,15 +233,7 @@
         </div>
         <div class="pc-body">
           <h3 class="pc-name">${U.escapeHtml(p.name)}</h3>
-          <ul class="pc-meta">
-            <li><span class="pc-ic">🏷️</span><span>${t("catalog.cat")}: <b>${U.escapeHtml(cat ? cat.name : "—")}</b></span></li>
-            <li><span class="pc-ic">💰</span><span>${t("catalog.price")}: <b>${money(p.price)}</b></span></li>
-            ${hasPromo
-              ? `<li><span class="pc-ic">🎁</span><span>${t("catalog.offer")}: <b>${money(p.promo_price)}</b></span></li>
-                 <li class="pc-ok"><span class="pc-ic">✅</span><span>${t("catalog.save")}: <b>${savePct}%</b></span></li>`
-              : `<li><span class="pc-ic">🎁</span><span>${t("catalog.offer")}: <b>—</b></span></li>
-                 <li class="pc-ok"><span class="pc-ic">✅</span><span><b>${t("catalog.available")}</b></span></li>`}
-          </ul>
+          <ul class="pc-meta">${metaRowsHtml(p, cat)}</ul>
           <div class="pc-actions">
             <button class="btn btn-primary btn-sm pc-add" data-add="${p.id}" data-label="${U.escapeHtml(addLabel)}">+ ${addLabel}</button>
             <button class="btn btn-soft btn-sm pc-detail" data-detail="${p.id}">${t("catalog.details")}</button>
@@ -303,13 +321,7 @@
     dEl.textContent = desc || t("catalog.noDescription");
     dEl.classList.toggle("muted", !desc);
 
-    $("#pdMeta").innerHTML = `
-      <li><span class="pc-ic">🏷️</span><span>${t("catalog.cat")}: <b>${U.escapeHtml(cat ? cat.name : "—")}</b></span></li>
-      <li><span class="pc-ic">💰</span><span>${t("catalog.price")}: <b>${money(price)}</b></span></li>
-      ${hasPromo
-        ? `<li><span class="pc-ic">🎁</span><span>${t("catalog.offer")}: <b>${money(p.promo_price)}</b></span></li>
-           <li class="pc-ok"><span class="pc-ic">✅</span><span>${t("catalog.save")}: <b>${savePct}%</b></span></li>`
-        : `<li class="pc-ok"><span class="pc-ic">✅</span><span><b>${t("catalog.available")}</b></span></li>`}`;
+    $("#pdMeta").innerHTML = metaRowsHtml(p, cat);
 
     renderPdImages((p.images || []).filter(Boolean), p.name);
 
@@ -423,8 +435,21 @@
   async function sendOrder() {
     if (!cart.length) return;
     const name = $("#custName").value.trim();
+    const phone = $("#custPhone").value.trim();
+    const address = $("#custAddress").value.trim();
+    const city = $("#custCity").value.trim();
     const note = $("#custNote").value.trim();
-    if (!name) { $("#custName").focus(); $("#custName").style.outline = "2px solid var(--danger)"; return; }
+
+    /* Nombre y teléfono son obligatorios: sin ellos no se puede cerrar el pedido. */
+    const faltan = [];
+    if (!name) { faltan.push($("#custName")); }
+    if (!phone) { faltan.push($("#custPhone")); }
+    if (faltan.length) {
+      faltan.forEach((el) => { el.style.outline = "2px solid var(--danger)"; });
+      faltan[0].focus();
+      return;
+    }
+    ["#custName", "#custPhone"].forEach((s) => { $(s).style.outline = ""; });
 
     const code = "CW-" + Math.random().toString(36).slice(2, 7).toUpperCase();
     const cur = business.currency;
@@ -434,66 +459,74 @@
     const dlv = parseTags(business.delivery).map((k) => t(DLV_LABEL[k] || k));
     const pay = parseTags(business.payments).map((k) => t(PAY_LABEL[k] || k));
 
-    /* Mensaje organizado por bloques y con negrita nativa de WhatsApp (*texto*). */
+    /* Mensaje por bloques, con negrita nativa de WhatsApp (*texto*)
+       y SIN iconos ni emojis (no todos los dispositivos los muestran bien). */
     const L = [];
+    const sep = "--------------------------------";
+    const campo = (label, valor) => { if (valor) L.push(label + ": " + valor); };
 
     // 1) Cabecera
     L.push("*" + t("order.title") + "*");
     L.push(business.name);
-    L.push("🧾 " + t("ord.code") + ": *" + code + "*");
+    L.push(t("ord.code") + ": *" + code + "*");
+    L.push(sep);
 
-    // 2) Cliente
-    L.push("");
-    L.push("👤 *" + t("order.customer") + "*");
-    L.push(name);
-    if (note) L.push("📝 " + note);
+    // 2) Datos del cliente
+    L.push("*" + t("order.customer") + "*");
+    campo(t("order.name"), name);
+    campo(t("order.phone"), phone);
+    campo(t("order.address"), address);
+    campo(t("order.city"), city);
+    campo(t("order.note"), note);
+    L.push(sep);
 
-    // 3) Productos y servicios
-    L.push("");
-    L.push("🛒 *" + t("order.items") + "*");
+    // 3) Artículos (productos y servicios)
+    L.push("*" + t("order.items") + "*");
     cart.forEach((i, n) => {
-      L.push((n + 1) + ". " + i.name + (i.kind === "service" ? " _(" + t("catalog.service") + ")_" : ""));
+      L.push((n + 1) + ". " + i.name + (i.kind === "service" ? " (" + t("catalog.service") + ")" : ""));
       if (Number(i.price) > 0) {
-        L.push("    " + i.qty + " × " + U.currency(i.price, cur) + " = *" + U.currency(i.price * i.qty, cur) + "*");
+        L.push("    " + i.qty + " x " + U.currency(i.price, cur) + " = " + U.currency(i.price * i.qty, cur));
       } else {
-        L.push("    " + i.qty + " × " + t("catalog.priceOnRequest"));
+        L.push("    " + i.qty + " x " + t("catalog.priceOnRequest"));
       }
     });
+    L.push(sep);
 
     // 4) Resumen de importes
-    L.push("");
-    L.push("💰 *" + t("order.summary") + "*");
+    L.push("*" + t("order.summary") + "*");
     if (fee > 0) {
       L.push(t("order.subtotal") + ": " + U.currency(sub, cur));
       L.push(t("order.deliveryFee") + ": +" + U.currency(fee, cur));
     }
-    L.push("*" + t("order.total") + ": " + U.currency(total, cur) + "*");
+    L.push(t("order.total") + ": *" + U.currency(total, cur) + "*");
 
     // 5) Entrega
     const dlvLines = [];
     if (dlv.length) dlvLines.push(dlv.join(", "));
-    if (business.delivery_time) dlvLines.push("⏱ " + business.delivery_time);
+    if (business.delivery_time) dlvLines.push(t("order.time") + ": " + business.delivery_time);
     if (dlvLines.length) {
-      L.push("");
-      L.push("🚚 *" + t("order.deliverySection") + "*");
+      L.push(sep);
+      L.push("*" + t("order.deliverySection") + "*");
       dlvLines.forEach((x) => L.push(x));
     }
 
     // 6) Forma de pago
     if (pay.length) {
-      L.push("");
-      L.push("💳 *" + t("order.paymentSection") + "*");
+      L.push(sep);
+      L.push("*" + t("order.paymentSection") + "*");
       L.push(pay.join(", "));
     }
 
-    L.push("");
-    L.push("_" + t("catalog.poweredBy") + "_");
+    L.push(sep);
+    L.push(t("catalog.poweredBy"));
     const msg = L.join("\n");
 
     // Guardar el pedido en el panel del negocio
     try {
       await S.createOrder({
-        business_id: business.id, code, customer_name: name, note,
+        business_id: business.id, code,
+        customer_name: name, note,
+        customer_phone: phone, customer_address: address, customer_city: city,
         items: cart.map((i) => ({ name: i.name, qty: i.qty, price: i.price, kind: i.kind || "product" })),
         total, status: "new"
       });
@@ -503,8 +536,7 @@
     cart = [];
     saveCart();
     $("#cartDrawer").classList.remove("open");
-    $("#custName").value = "";
-    $("#custNote").value = "";
+    ["#custName", "#custPhone", "#custAddress", "#custCity", "#custNote"].forEach((s) => { $(s).value = ""; });
   }
 
   document.addEventListener("DOMContentLoaded", boot);

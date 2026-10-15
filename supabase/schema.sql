@@ -470,3 +470,35 @@ create index if not exists products_kind_idx on public.products(kind);
 -- Comprobación:
 --   select kind, count(*) from public.products group by kind;
 -- ===========================================================
+
+
+-- ===========================================================
+-- 13) SERVICIOS: DURACIÓN Y MODALIDAD
+-- -----------------------------------------------------------
+-- Solo se usan cuando products.kind = 'service'.
+--   duration  -> "2 horas", "1 día"...
+--   modality  -> "A domicilio", "En local", "Online"...
+-- ===========================================================
+
+alter table public.products add column if not exists duration text;
+alter table public.products add column if not exists modality text;
+
+
+-- ===========================================================
+-- 14) DATOS DEL CLIENTE EN EL PEDIDO
+-- -----------------------------------------------------------
+-- Se rellenan desde el formulario del pedido en el catálogo.
+-- ===========================================================
+
+alter table public.orders add column if not exists customer_phone   text;
+alter table public.orders add column if not exists customer_address text;
+alter table public.orders add column if not exists customer_city    text;
+
+-- Comprobación de todo lo anterior:
+--   select column_name from information_schema.columns
+--    where table_schema='public' and table_name='products'
+--      and column_name in ('kind','duration','modality');
+--   select column_name from information_schema.columns
+--    where table_schema='public' and table_name='orders'
+--      and column_name in ('customer_phone','customer_address','customer_city');
+-- ===========================================================

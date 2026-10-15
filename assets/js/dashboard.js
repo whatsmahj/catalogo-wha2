@@ -57,9 +57,12 @@
 
     function render() {
       const grid = state.library.length
-        ? '<div class="library-grid">' + state.library.map((it) =>
-            `<div class="lib-item"><img src="${U.escapeHtml(it.url)}" alt=""><div class="meta">${U.escapeHtml(it.name || "")}</div>
-             <button class="pick" data-pick="${it.id}" title="${t("lib.pick")}"></button></div>`).join("") + "</div>"
+        ? '<div class="library-grid">' + state.library.map((it) => {
+            const on = selected.some((s) => s.id === it.id);
+            return `<div class="lib-item${on ? " selected" : ""}"><img src="${U.escapeHtml(it.url)}" alt="">
+              <div class="meta">${U.escapeHtml(it.name || "")}</div>
+              <button class="pick" data-pick="${it.id}" title="${t("lib.pick")}">${on ? "✓" : ""}</button></div>`;
+          }).join("") + "</div>"
         : `<div class="empty"><div class="ico">🖼️</div><p>${t("lib.empty")}</p><p class="small">${t("lib.emptySub")}</p></div>`;
 
       openModal(t("lib.pickTitle"), `
@@ -70,9 +73,11 @@
           <input type="file" id="libFile" accept="image/*" multiple hidden>
         </div>
         <div class="mt-3">${grid}</div>
-        <div class="mt-3 row"><div class="spacer"></div>
+        <div class="lib-confirm-bar mt-3 row">
+          <span class="small muted">${selected.length ? selected.length + " " + t("lib.selected") : t("lib.tapToPick")}</span>
+          <div class="spacer"></div>
           <button class="btn btn-ghost" data-close>${t("common.cancel")}</button>
-          ${multiple ? `<button class="btn btn-primary" id="libConfirm">${t("common.save")} (${selected.length})</button>` : ""}
+          ${multiple ? `<button class="btn btn-primary" id="libConfirm" ${selected.length ? "" : "disabled"}>${t("common.save")} (${selected.length})</button>` : ""}
         </div>`);
 
       $("#libUp").addEventListener("click", () => $("#libFile").click());
@@ -254,7 +259,7 @@
     </tr></thead><tbody>${list.map((o) => `
       <tr>
         <td><strong>${U.escapeHtml(o.code)}</strong></td>
-        <td>${U.escapeHtml(o.customer_name || "—")}</td>
+        <td>${U.escapeHtml(o.customer_name || "—")}${o.customer_phone ? `<div class="small muted">${U.escapeHtml(o.customer_phone)}</div>` : ""}</td>
         <td>${U.currency(o.total, state.business.currency)}</td>
         <td class="small muted">${new Date(o.created_at).toLocaleString()}</td>
         <td><span class="badge ${o.status === "new" ? "info" : o.status === "delivered" ? "ok" : o.status === "cancelled" ? "warn" : "ok"}">${t("ord.status." + (o.status || "new"))}</span></td>
@@ -278,8 +283,12 @@
       const o = state.orders.find((x) => x.id === b.getAttribute("data-order"));
       if (!o) return;
       openModal(t("ord.title") + " " + o.code, `
-        <p><strong>${t("ord.customer")}:</strong> ${U.escapeHtml(o.customer_name || "—")}</p>
-        <p><strong>${t("catalog.note")}:</strong> ${U.escapeHtml(o.note || "—")}</p>
+        <p><strong>${t("order.name")}:</strong> ${U.escapeHtml(o.customer_name || "—")}</p>
+        <p><strong>${t("order.phone")}:</strong> ${U.escapeHtml(o.customer_phone || "—")}</p>
+        <p><strong>${t("order.address")}:</strong> ${U.escapeHtml(o.customer_address || "—")}</p>
+        <p><strong>${t("order.city")}:</strong> ${U.escapeHtml(o.customer_city || "—")}</p>
+        <p><strong>${t("order.note")}:</strong> ${U.escapeHtml(o.note || "—")}</p>
+        ${o.customer_phone ? `<a class="btn btn-wa btn-block mb-2" href="${U.escapeHtml(U.waLink(o.customer_phone, t("ord.hello") + " " + (o.customer_name || "")))}" target="_blank" rel="noopener">${t("ord.contact")}</a>` : ""}
         <table style="margin:12px 0">${(o.items || []).map((i) => `<tr><td>${U.escapeHtml(i.name)} × ${i.qty}</td><td style="text-align:end">${U.currency(i.price * i.qty, state.business.currency)}</td></tr>`).join("")}</table>
         <p style="text-align:end"><strong>${t("catalog.subtotal")}: ${U.currency(o.total, state.business.currency)}</strong></p>
         <div class="field"><label>${t("ord.status")}</label>
@@ -363,6 +372,7 @@
       description: p.description || "", sort_order: p.sort_order || 0,
       price: p.price === undefined ? "" : p.price, promo_price: p.promo_price || "",
       kind: p.kind || "product",
+      duration: p.duration || "", modality: p.modality || "",
       images: (p.images || []).slice(0, 5)
     };
     return `
@@ -385,6 +395,14 @@
                 <option value="service" ${p.kind === "service" ? "selected" : ""}>${t("prod.kindService")}</option>
               </select>
               <div class="hint">${t("prod.kindHint")}</div></div>
+            <div id="pServiceFields" class="hidden">
+              <div class="grid cols-2">
+                <div class="field"><label>${t("prod.duration")} (${t("common.optional")})</label>
+                  <input class="input" id="pDuration" value="${U.escapeHtml(p.duration || "")}" placeholder="${t("prod.durationPh")}"></div>
+                <div class="field"><label>${t("prod.modality")} (${t("common.optional")})</label>
+                  <input class="input" id="pModality" value="${U.escapeHtml(p.modality || "")}" placeholder="${t("prod.modalityPh")}"></div>
+              </div>
+            </div>
             <div class="field"><label>${t("prod.category")}</label>
               <select class="select" id="pCat"><option value="">${t("prod.categoryPh")}</option>
               ${state.categories.map((c) => `<option value="${c.id}" ${p.category_id === c.id ? "selected" : ""}>${U.escapeHtml(c.name)}</option>`).join("")}
@@ -461,6 +479,15 @@
   function bindProductForm(id) {
     const nameEl = $("#pName");
     if (nameEl) nameEl.addEventListener("input", () => { $("#pSlug").value = S.slugify(nameEl.value); });
+
+    /* Los campos de duración y modalidad solo salen para servicios. */
+    const kindEl = $("#pKind");
+    function toggleKind() {
+      const sf = $("#pServiceFields");
+      if (sf) sf.classList.toggle("hidden", !kindEl || kindEl.value !== "service");
+    }
+    if (kindEl) kindEl.addEventListener("change", toggleKind);
+    toggleKind();
     const fromLib = $("#addFromLib");
     if (fromLib) fromLib.addEventListener("click", () =>
       pickImages({ multiple: true, max: 5 - productDraft.images.length, onPick: (items) => {
@@ -481,6 +508,8 @@
         price: parseFloat($("#pPrice").value || "0"),
         promo_price: $("#pPromo").value ? parseFloat($("#pPromo").value) : null,
         kind: $("#pKind") ? $("#pKind").value : "product",
+        duration: $("#pDuration") ? ($("#pDuration").value.trim() || null) : null,
+        modality: $("#pModality") ? ($("#pModality").value.trim() || null) : null,
         active: true,
         images: productDraft.images
       };
