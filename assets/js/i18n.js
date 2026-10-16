@@ -2009,6 +2009,9 @@
       "lib.errSize": "La imagen es demasiado grande (máximo 10 MB).",
       "lib.errMime": "Ese formato de imagen no está permitido. Usa PNG, JPG, WEBP o GIF.",
       "lib.errAuth": "Tu sesión ha caducado. Vuelve a iniciar sesión.",
+      "lib.errQuota": "No cabe más información en el navegador (modo demo). Borra imágenes de la biblioteca o pon las claves de Supabase en assets/js/config.js.",
+      "lib.demoTitle": "Estás en modo demo",
+      "lib.demoText": "Las imágenes se guardan en este navegador y hay un límite de unos 5 MB en total. Para guardarlas en la nube sin límite, pon las claves de Supabase en assets/js/config.js.",
       "setup.reopen": "Volver a configurar",
       "setup.progress": "Progreso del asistente"
     },
@@ -2233,6 +2236,9 @@
       "lib.errSize": "L'image est trop volumineuse (10 Mo maximum).",
       "lib.errMime": "Ce format d'image n'est pas autorisé. Utilisez PNG, JPG, WEBP ou GIF.",
       "lib.errAuth": "Votre session a expiré. Reconnectez-vous.",
+      "lib.errQuota": "Plus de place dans le navigateur (mode démo). Supprimez des images de la bibliothèque ou renseignez vos clés Supabase dans assets/js/config.js.",
+      "lib.demoTitle": "Vous êtes en mode démo",
+      "lib.demoText": "Les images sont enregistrées dans ce navigateur, avec une limite d'environ 5 Mo au total. Pour les stocker dans le cloud sans limite, renseignez vos clés Supabase dans assets/js/config.js.",
       "setup.reopen": "Reconfigurer",
       "setup.progress": "Progression de l'assistant"
     },
@@ -2457,6 +2463,9 @@
       "lib.errSize": "الصورة كبيرة جدًا (10 ميغابايت كحد أقصى).",
       "lib.errMime": "صيغة الصورة غير مسموح بها. استخدم PNG أو JPG أو WEBP أو GIF.",
       "lib.errAuth": "انتهت جلستك. سجّل الدخول من جديد.",
+      "lib.errQuota": "لا توجد مساحة كافية في المتصفح (وضع العرض). احذف بعض الصور من المكتبة أو أضف مفاتيح Supabase في assets/js/config.js.",
+      "lib.demoTitle": "أنت في وضع العرض",
+      "lib.demoText": "تُحفظ الصور في هذا المتصفح بحد أقصى يقارب 5 ميغابايت. لتخزينها في السحابة بلا حدود، أضف مفاتيح Supabase في assets/js/config.js.",
       "setup.reopen": "إعادة الإعداد",
       "setup.progress": "تقدّم المساعد"
     }

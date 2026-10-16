@@ -29,15 +29,41 @@
     const num = String(number || "").replace(/\D/g, "");
     return "https://wa.me/" + num + "?text=" + encodeURIComponent(text || "");
   }
+  /* ¿El servidor usa URLs limpias (sin .html)? Vercel con cleanUrls sí.
+     Se deduce de la página actual: si estamos en /dashboard es que sí. */
+  function cleanUrls() { return !/\.html?$/i.test(location.pathname); }
+
+  /* Ruta interna correcta: pagePath("dashboard") -> /dashboard  ó  /dashboard.html */
+  function pagePath(name) {
+    const n = String(name || "").replace(/^\.?\/?/, "").replace(/\.html?$/, "");
+    return "/" + n + (cleanUrls() ? "" : ".html");
+  }
+
+  /* Ruta del catálogo público, también adaptada al servidor. */
+  function catalogPath() {
+    let p = CFG.catalogPath || "/catalogo.html";
+    return cleanUrls() ? p.replace(/\.html?$/, "") : p;
+  }
+
+  /* Enlace público al catálogo de un negocio. */
   function catalogUrl(slug) {
     const base = (CFG.publicDomain || location.host).replace(/^https?:\/\//, "");
-    return location.protocol + "//" + base + (CFG.catalogPath || "/catalogo.html") + "?b=" + encodeURIComponent(slug);
+    return location.protocol + "//" + base + catalogPath() + "?b=" + encodeURIComponent(slug);
+  }
+
+  /* Si el servidor usa URLs limpias, quita el .html de los enlaces del HTML. */
+  function fixInternalLinks() {
+    if (!cleanUrls()) return;
+    document.querySelectorAll('a[href*=".html"]').forEach((a) => {
+      const h = a.getAttribute("href");
+      if (h && /^\//.test(h)) a.setAttribute("href", h.replace(/\.html(?=$|[?#])/, ""));
+    });
   }
   function qs(name) {
     return new URLSearchParams(location.search).get(name);
   }
 
-  CW.util = { escapeHtml, mdToHtml, mdToWa, currency, waLink, catalogUrl, qs };
+  CW.util = { escapeHtml, mdToHtml, mdToWa, currency, waLink, catalogUrl, catalogPath, pagePath, cleanUrls, fixInternalLinks, qs };
 
   /* ---------- Selector de idioma ---------- */
   function buildLangSelector() {
@@ -312,6 +338,7 @@
 
   /* ---------- Init ---------- */
   document.addEventListener("DOMContentLoaded", () => {
+    fixInternalLinks();
     CW.store.init();
     buildLangSelector();
     buildInlineLang();

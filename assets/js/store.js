@@ -26,7 +26,17 @@
   function loadDb() {
     try { return JSON.parse(localStorage.getItem(LS)) || null; } catch (e) { return null; }
   }
-  function saveDb(db) { localStorage.setItem(LS, JSON.stringify(db)); }
+  /* Guarda en localStorage avisando si no cabe. */
+  function saveDb(db) {
+    try {
+      localStorage.setItem(LS, JSON.stringify(db));
+    } catch (e) {
+      const err = new Error("No cabe más información en el almacenamiento del navegador. " +
+        "Estás en modo demo: borra imágenes de la biblioteca o configura Supabase en assets/js/config.js.");
+      err.code = "QUOTA";
+      throw err;
+    }
+  }
 
   function seed() {
     const bid = "biz_demo";
@@ -364,10 +374,12 @@
   }
   async function uploadImage(businessId, file) {
     if (isDemo()) {
-      const url = await fileToDataUrl(file);
+      const url = await compressImage(file);
       const d = db();
       const item = { id: uid(), business_id: businessId, url, name: file.name, created_at: new Date().toISOString() };
-      d.library.push(item); saveDb(d); return item;
+      d.library.push(item);
+      saveDb(d);
+      return item;
     }
     init();
     const path = `${businessId}/${uid()}-${file.name.replace(/[^\w.\-]/g, "_")}`;
@@ -438,7 +450,7 @@
   async function sendPasswordReset(email) {
     if (isDemo()) return true;
     init();
-    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + "/login.html" });
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + CW.util.pagePath("login") });
     if (error) throw error;
     return true;
   }
@@ -498,6 +510,41 @@
       r.onload = () => resolve(r.result);
       r.onerror = reject;
       r.readAsDataURL(file);
+    });
+  }
+
+  /* Reduce y comprime la imagen antes de guardarla como data URL.
+     En modo demo las imágenes viven en localStorage (~5 MB en total),
+     así que una foto de móvil de 4 MB hay que bajarla a ~150 KB. */
+  function compressImage(file, maxSide, quality) {
+    maxSide = maxSide || 1100;
+    quality = quality || 0.78;
+    return new Promise((resolve) => {
+      const fallback = () => fileToDataUrl(file).then(resolve).catch(() => resolve(""));
+      if (!file || !file.type || !/^image\//.test(file.type) || /svg/i.test(file.type)) return fallback();
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          URL.revokeObjectURL(url);
+          let w = img.naturalWidth, h = img.naturalHeight;
+          if (!w || !h) return fallback();
+          const scale = Math.min(1, maxSide / Math.max(w, h));
+          w = Math.max(1, Math.round(w * scale));
+          h = Math.max(1, Math.round(h * scale));
+          const c = document.createElement("canvas");
+          c.width = w; c.height = h;
+          c.getContext("2d").drawImage(img, 0, 0, w, h);
+          // PNG y GIF conservan transparencia; el resto a JPEG
+          const keepPng = /png|gif/i.test(file.type);
+          const out = keepPng ? c.toDataURL("image/png") : c.toDataURL("image/jpeg", quality);
+          // Si comprimir no ayuda (ya era pequeña), se usa el original
+          if (!out || out.length >= file.size * 1.35) return fallback();
+          resolve(out);
+        } catch (e) { fallback(); }
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); fallback(); };
+      img.src = url;
     });
   }
 
@@ -716,7 +763,7 @@
     listCategories, saveCategory, deleteCategory,
     listProducts, saveProduct, deleteProduct,
     listOrders, createOrder, updateOrderStatus,
-    listLibrary, uploadImage, deleteImage, fileToDataUrl,
+    listLibrary, uploadImage, deleteImage, fileToDataUrl, compressImage,
     isAdmin, adminOverview, adminBusinessDetail, adminDeleteBusiness, adminUpdateBusiness,
     trackProductView, adminMetrics, diagnose
   };

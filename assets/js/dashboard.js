@@ -83,7 +83,7 @@
       $("#libUp").addEventListener("click", () => $("#libFile").click());
       $("#libFile").addEventListener("change", async (e) => {
         const files = Array.from(e.target.files || []);
-        for (const f of files) { try { await S.uploadImage(state.business.id, f); } catch (err) { toast(t("common.error"), "error"); } }
+        for (const f of files) { try { await S.uploadImage(state.business.id, f); } catch (err) { toast(uploadMsg(err), "error"); } }
         state.library = await S.listLibrary(state.business.id);
         render();
       });
@@ -720,6 +720,10 @@
   function viewLibrary() {
     return `
       <div class="page-head"><div class="small muted">${t("dash.home")} / ${t("lib.title")}</div><h1>${t("lib.title")}</h1><p>${t("lib.sub")}</p></div>
+      <div class="card mb-3" id="libDemoNote" style="background:var(--warn-bg);border-color:var(--warn);display:none">
+        <strong>⚠️ ${t("lib.demoTitle")}</strong>
+        <p class="small" style="margin:6px 0 0">${t("lib.demoText")}</p>
+      </div>
       <div class="uploader mb-3" id="libUploader">
         <div style="font-size:1.8rem">⬆️</div>
         <strong>${t("lib.upload")}</strong>
@@ -741,6 +745,9 @@
       </div>`).join("")}</div>`;
   }
   function bindLibrary() {
+    /* En modo demo avisamos de que las imágenes viven en el navegador. */
+    const note = $("#libDemoNote");
+    if (note && CW.isConfigured && !CW.isConfigured()) note.style.display = "block";
     const up = $("#libUploader");
     const input = $("#libInput");
     up.addEventListener("click", () => input.click());
@@ -761,6 +768,7 @@
 
   /* Traduce el error crudo de Supabase a un mensaje útil. */
   function uploadMsg(err) {
+    if (err && err.code === "QUOTA") return t("lib.errQuota");
     const raw = String((err && (err.message || err.error_description || err.error)) || err || "");
     const low = raw.toLowerCase();
     if (low.includes("bucket not found") || low.includes("not found")) return t("lib.errBucket");
@@ -1379,7 +1387,7 @@
           await S.deleteBusinessData(state.business.id);
           closeModal();
           toast(t("acc.deleteDone"));
-          setTimeout(async () => { await S.signOut(); location.href = "/index.html"; }, 900);
+          setTimeout(async () => { await S.signOut(); location.href = "/"; }, 900);
         } catch (e) { toast((e && e.message) || t("common.error"), "error"); }
       });
     });
@@ -1387,7 +1395,7 @@
     $("#accSignOut").addEventListener("click", async () => {
       if (!confirm(t("common.logoutConfirm"))) return;
       await S.signOut();
-      location.href = "/index.html";
+      location.href = "/";
     });
   }
 
@@ -1485,7 +1493,7 @@
     return `
       <div class="field"><label>${t("setup.s4.slug")}</label>
         <div class="row" style="gap:0;flex-wrap:nowrap">
-          <span class="input setup-slug-prefix">${U.escapeHtml(base + (window.APP_CONFIG.catalogPath || "/catalogo.html") + "?b=")}</span>
+          <span class="input setup-slug-prefix">${U.escapeHtml(base + CW.util.catalogPath() + "?b=")}</span>
           <input class="input setup-slug-input" id="stSlug" value="${U.escapeHtml(setupDraft.slug)}">
         </div>
         <div class="hint" id="stSlugMsg"></div>
@@ -2198,9 +2206,9 @@
 
   async function boot() {
     const user = await S.currentUser();
-    if (!user) { location.href = "/login.html"; return; }
+    if (!user) { location.href = CW.util.pagePath("login"); return; }
     await loadBusiness();
-    if (!state.business) { location.href = "/login.html"; return; }
+    if (!state.business) { location.href = CW.util.pagePath("login"); return; }
     state.user = user;
     try { state.meta = (await S.userMeta()) || {}; } catch (e) { state.meta = {}; }
     try { state.isAdmin = await S.isAdmin(); } catch (e) { state.isAdmin = false; }
@@ -2228,7 +2236,7 @@
     $("#logoutBtn").addEventListener("click", async () => {
       if (!confirm(t("common.logoutConfirm"))) return;
       await S.signOut();
-      location.href = "/index.html";
+      location.href = "/";
     });
 
     // Navegación del menú lateral

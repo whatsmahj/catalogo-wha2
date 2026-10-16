@@ -30,7 +30,7 @@
   // Prefijo del enlace (dominio real)
   if (els.slugPrefix) {
     const base = (window.APP_CONFIG.publicDomain || location.host).replace(/^https?:\/\//, "");
-    els.slugPrefix.textContent = base + (window.APP_CONFIG.catalogPath || "/catalogo.html") + "?b=";
+    els.slugPrefix.textContent = base + CW.util.catalogPath() + "?b=";
   }
 
   function setMode(m) {
@@ -97,10 +97,10 @@
         const ok = await CW.store.slugAvailable(slug);
         if (!ok) { showAlert("El enlace ya está en uso. Prueba otro."); els.submit.disabled = false; els.submit.textContent = original; return; }
         await CW.store.signUp({ email, password, business, slug });
-        location.href = "/dashboard.html";
+        location.href = CW.util.pagePath("dashboard");
       } else {
         await CW.store.signIn(email, password);
-        location.href = "/dashboard.html";
+        location.href = CW.util.pagePath("dashboard");
       }
     } catch (err) {
       showAlert((err && err.message) || t("common.error"));
@@ -110,7 +110,7 @@
   });
 
   // Si ya hay sesión, ir al panel
-  CW.store.currentUser().then((u) => { if (u) location.href = "/dashboard.html"; });
+  CW.store.currentUser().then((u) => { if (u) location.href = CW.util.pagePath("dashboard"); });
 
   document.addEventListener("DOMContentLoaded", () => setMode(mode));
 })();

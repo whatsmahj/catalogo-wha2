@@ -34,7 +34,7 @@
     business = await S.businessBySlug(slug);
 
     if (!business) {
-      $("#catalogBody").innerHTML = `<div class="empty"><div class="ico">🔍</div><h3>${t("catalog.notFound")}</h3><p>${t("catalog.notFoundSub")}</p><a class="btn btn-primary mt-2" href="/index.html">${t("nav.home")}</a></div>`;
+      $("#catalogBody").innerHTML = `<div class="empty"><div class="ico">🔍</div><h3>${t("catalog.notFound")}</h3><p>${t("catalog.notFoundSub")}</p><a class="btn btn-primary mt-2" href="/">${t("nav.home")}</a></div>`;
       $("#catalogHero").classList.add("hidden");
       $(".catalog-toolbar").classList.add("hidden");
       return;
