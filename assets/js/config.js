@@ -4,7 +4,7 @@
 window.APP_CONFIG = {
   // --- Supabase ---
   supabaseUrl: "https://anhibmtcirtvjwjtykdjc.supabase.co",
-  supabaseAnonKey: "sb_publishable_VQh74mm6IJdf3mbIv6J5fg_52fbK1k-",
+  supabaseAnonKey: "sb_publishable_VQh74mm6IJd3f3mbiV635fg_52fbk1K-",
 
   // --- Administradores (super admin) ---
   adminEmails: [
